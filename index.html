@@ -267,6 +267,10 @@
   }
   .exam-add-form input:focus{outline:none;border-color:var(--red);}
   .exam-add-form button{flex:0 0 auto;}
+
+  /* Backup section */
+  .backup-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .backup-note{font-size:12.5px;color:var(--ink-dim);margin-top:10px;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -317,6 +321,17 @@
     <div class="sec-title">সব চ্যাপ্টার <span class="count" id="chapCount">0</span></div>
     <div class="subject-tabs" id="subjectTabs"></div>
     <div id="chapterList"></div>
+  </section>
+  <section>
+    <div class="sec-title">ব্যাকআপ</div>
+    <div class="card">
+      <div class="backup-row">
+        <button class="btn btn-amber" id="exportBtn">এক্সপোর্ট করুন (ডাউনলোড)</button>
+        <button class="btn btn-ghost" id="importBtn">ইমপোর্ট করুন</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none;">
+      </div>
+      <div class="backup-note">এক্সপোর্ট করলে আপনার সব চ্যাপ্টার আর পরীক্ষার ডেটা একটা ফাইলে সেভ হয়ে ডাউনলোড হবে। ফোন পাল্টালে বা ডেটা হারিয়ে গেলে সেই ফাইল ইমপোর্ট করে সব ফিরিয়ে আনতে পারবেন।</div>
+    </div>
   </section>
 
 </div>
@@ -632,6 +647,57 @@ function render(){
 function escapeHtml(s){
   return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
+
+function exportData(){
+  const payload = {
+    exportedAt: todayStr(),
+    chapters,
+    exams
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'review-tracker-backup-'+todayStr()+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data.chapters) || !Array.isArray(data.exams)){
+        alert('ফাইলটা সঠিক ফরম্যাটে নেই।');
+        return;
+      }
+      const ok = confirm('এই ফাইল ইমপোর্ট করলে বর্তমান সব ডেটা মুছে গিয়ে ফাইলের ডেটা বসে যাবে। আগাতে চান?');
+      if(!ok) return;
+      chapters = data.chapters;
+      exams = data.exams;
+      await save();
+      await saveExams();
+      render();
+      alert('ইমপোর্ট সম্পন্ন হয়েছে।');
+    }catch(err){
+      alert('ফাইল পড়তে সমস্যা হয়েছে, এটা সঠিক ব্যাকআপ ফাইল কিনা যাচাই করুন।');
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(file) importData(file);
+  e.target.value = '';
+});
 
 (async function init(){
   document.getElementById('chapterList').innerHTML = '<div class="loading">লোড হচ্ছে…</div>';
