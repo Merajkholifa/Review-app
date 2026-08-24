@@ -1,21 +1,24 @@
-# Icon package
+# পুনরাবৃত্তি ট্র্যাকার — GitHub-এ আপলোড করার নিয়ম
 
-GitHub repo-র রুটে (বা `assets/` ফোল্ডারে) এই ফাইলগুলো আপলোড করে, HTML ফাইলের `<head>`-এ এই লাইনগুলো যোগ করে দিন:
+এই zip-এ আছে: `index.html` (আপনার পুরো অ্যাপ) + আইকন ফাইলগুলো, আর আইকন লিংক আগে থেকেই HTML-এর ভিতরে বসানো আছে। শুধু আপলোড করলেই চলবে, আলাদা করে কিছু জোড়া লাগাতে হবে না।
 
-```html
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#e3a23a">
-```
+## ধাপ ১ — রিপোজিটরি বানান
+1. https://github.com এ লগইন করুন
+2. উপরে ডানে `+` আইকনে ক্লিক করে **New repository** সিলেক্ট করুন
+3. একটা নাম দিন, যেমন `revision-tracker`
+4. **Public** সিলেক্ট করে **Create repository** চাপুন
 
-যদি ফাইলগুলো `assets/` এর মতো কোনো সাবফোল্ডারে রাখেন, তাহলে `href="favicon.ico"` কে `href="assets/favicon.ico"` — এভাবে path বদলে দিতে হবে।
+## ধাপ ২ — ফাইলগুলো আপলোড করুন
+1. রিপোর পেজে **Add file → Upload files** এ ক্লিক করুন
+2. এই zip ফাইলটা extract (unzip) করে ভেতরের সবগুলো ফাইল (`index.html`, `favicon.ico`, বাকি PNG গুলো, `site.webmanifest`) — সব একসাথে ড্র্যাগ করে ছেড়ে দিন
+3. নিচে **Commit changes** বাটনে ক্লিক করুন
 
-## ফাইল লিস্ট
-- `favicon.ico` — ব্রাউজার ট্যাব আইকন (16/32/48/64px)
-- `favicon-16x16.png`, `favicon-32x32.png` — ছোট সাইজ আইকন
-- `apple-touch-icon.png` (180x180) — আইফোনে হোমস্ক্রিনে যোগ করলে
-- `android-chrome-192x192.png`, `android-chrome-512x512.png` — অ্যান্ড্রয়েড / PWA আইকন
-- `site.webmanifest` — PWA ম্যানিফেস্ট, `android-chrome-*` আইকনগুলো এখানে রেফারেন্স করা আছে
+## ধাপ ৩ — লাইভ লিংক চালু করুন (GitHub Pages)
+1. রিপোর **Settings** ট্যাবে যান
+2. বাঁ পাশের মেনু থেকে **Pages** সিলেক্ট করুন
+3. **Branch** এর নিচে `main` সিলেক্ট করে, ফোল্ডার `/ (root)` রেখে **Save** চাপুন
+4. ১-২ মিনিট পর একটা লিংক দেখাবে, যেমন:
+   `https://<আপনার-ইউজারনেম>.github.io/revision-tracker/`
+5. এই লিংক দিয়ে যেকোনো ডিভাইস থেকে (ফোন সহ) অ্যাপটা খুলতে পারবেন
+
+এরপর থেকে কোনো ফাইল আপডেট করতে চাইলে সেই ফাইলটা রিপোতে গিয়ে এডিট (পেন্সিল আইকন) বা আবার Upload files দিয়ে বদলে দিলেই হবে।
