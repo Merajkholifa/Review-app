@@ -516,25 +516,25 @@ function recompute(){
 
 async function save(){
   try{
-    await window.storage.set('chapters', JSON.stringify(chapters), false);
+    localStorage.setItem('revtrack_chapters', JSON.stringify(chapters));
   }catch(e){ console.error('save failed', e); }
 }
 async function load(){
   try{
-    const res = await window.storage.get('chapters', false);
-    if(res && res.value) chapters = JSON.parse(res.value);
+    const raw = localStorage.getItem('revtrack_chapters');
+    if(raw) chapters = JSON.parse(raw);
   }catch(e){ chapters = []; }
   loaded = true;
 }
 async function saveExams(){
   try{
-    await window.storage.set('exams', JSON.stringify(exams), false);
+    localStorage.setItem('revtrack_exams', JSON.stringify(exams));
   }catch(e){ console.error('save exams failed', e); }
 }
 async function loadExams(){
   try{
-    const res = await window.storage.get('exams', false);
-    if(res && res.value) exams = JSON.parse(res.value);
+    const raw = localStorage.getItem('revtrack_exams');
+    if(raw) exams = JSON.parse(raw);
   }catch(e){ exams = []; }
 }
 function deleteExam(id){
