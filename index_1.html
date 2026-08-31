@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#e3a23a">
+<title>পুনরাবৃত্তি ট্র্যাকার</title>
+<style>
+  :root{
+    --bg: #14171f;
+    --bg-card: #1c202b;
+    --bg-card-hover: #232837;
+    --ink: #eee9de;
+    --ink-dim: #9aa0ae;
+    --line: #2b3040;
+    --amber: #e3a23a;
+    --amber-dim: #6b5327;
+    --green: #4fae7d;
+    --green-dim: #234030;
+    --red: #d9705c;
+    --red-dim: #472823;
+    --slate: #565f77;
+    --radius: 14px;
+    font-family: "Noto Sans Bengali","Kalpurush","Hind Siliguri",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 15% -10%, rgba(227,162,58,0.10), transparent),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  header.top{margin-bottom:28px;}
+  header.top .eyebrow{
+    color:var(--amber);
+    letter-spacing:0.14em;
+    font-size:12px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  header.top h1{
+    font-size:26px;
+    margin:0 0 6px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  header.top p{
+    color:var(--ink-dim);
+    margin:0;
+    font-size:14.5px;
+    line-height:1.6;
+  }
+  .today-date{
+    display:inline-block;
+    margin-top:10px;
+    font-size:13px;
+    color:var(--ink-dim);
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    padding:5px 12px;
+    border-radius:999px;
+  }
+
+  section{margin-bottom:30px;}
+  .sec-title{
+    display:flex;align-items:center;gap:10px;
+    font-size:14px;font-weight:700;
+    color:var(--ink);
+    margin-bottom:12px;
+  }
+  .sec-title .count{
+    background:var(--amber-dim);
+    color:var(--amber);
+    font-size:12px;
+    padding:2px 9px;
+    border-radius:999px;
+    font-weight:700;
+  }
+  .sec-title.red .count{background:var(--red-dim);color:var(--red);}
+
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:10px;
+  }
+  .due-card{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    border-left:3px solid var(--amber);
+  }
+  .missed-card{border-left:3px solid var(--red);}
+  .due-info .chap{font-weight:700;font-size:15px;margin-bottom:3px;}
+  .due-info .meta{font-size:13px;color:var(--ink-dim);}
+  .btn{
+    border:none;border-radius:10px;
+    padding:9px 16px;
+    font-size:13.5px;font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:active{transform:scale(0.96);}
+  .btn-amber{background:var(--amber);color:#1c1408;}
+  .btn-amber:hover{opacity:.9;}
+  .btn-red{background:var(--red);color:#2a0f0a;}
+  .btn-red:hover{opacity:.9;}
+  .btn-ghost{
+    background:transparent;border:1px solid var(--line);color:var(--ink-dim);
+  }
+  .btn-ghost:hover{border-color:var(--slate);color:var(--ink);}
+
+  .empty{
+    color:var(--ink-dim);
+    font-size:13.5px;
+    padding:14px 16px;
+    background:var(--bg-card);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+
+  /* Add chapter form */
+  .add-form{
+    display:flex;gap:10px;flex-wrap:wrap;
+  }
+  .add-form input[type=text], .add-form input[type=date]{
+    flex:1;min-width:150px;
+    background:#10131a;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .add-form input:focus{outline:none;border-color:var(--amber);}
+  .add-form button{flex:0 0 auto;}
+  .add-form input#chapSubject{flex:0 1 150px;}
+
+  /* Subject badge */
+  .subject-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:3px 10px;
+    border-radius:999px;
+    background:var(--amber-dim);
+    color:var(--amber);
+    letter-spacing:0.02em;
+    margin-bottom:4px;
+  }
+
+  /* Subject filter tabs */
+  .subject-tabs{
+    display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;
+  }
+  .subject-tab{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-size:12.5px;
+    font-weight:600;
+    padding:6px 13px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .subject-tab:hover{border-color:var(--slate);color:var(--ink);}
+  .subject-tab.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:#1c1408;
+  }
+
+  /* Chapter list */
+  .chapter{
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .chapter-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+  }
+  .chapter-head .name{font-weight:700;font-size:15.5px;}
+  .chapter-head .sub{font-size:12.5px;color:var(--ink-dim);margin-top:2px;}
+  .del-btn{
+    background:none;border:none;color:var(--slate);
+    font-size:12px;cursor:pointer;padding:4px 6px;border-radius:6px;
+  }
+  .del-btn:hover{color:var(--red);background:var(--red-dim);}
+
+  .orbit-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .orbit{
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    min-width:58px;
+  }
+  .dot{
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;
+    border:2px solid var(--line);
+    color:var(--ink-dim);
+    background:#10131a;
+  }
+  .dot.done{background:var(--green);border-color:var(--green);color:#0d2018;}
+  .dot.done_late{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+  .dot.due{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);
+    animation: pulse 1.8s ease-in-out infinite;}
+  .dot.missed{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(227,162,58,0.35);}
+    50%{box-shadow:0 0 0 5px rgba(227,162,58,0);}
+  }
+  .orbit .lbl{font-size:10.5px;color:var(--ink-dim);}
+  .orbit .lbl.active{color:var(--amber);font-weight:700;}
+
+  .progress-track{
+    height:6px;background:#10131a;border-radius:999px;overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--green));}
+
+  .loading{color:var(--ink-dim);font-size:13px;padding:20px;text-align:center;}
+
+  /* Exam countdown */
+  .exam-scroll{
+    display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .exam-card{
+    flex:0 0 auto;
+    min-width:150px;
+    background:linear-gradient(160deg, var(--bg-card), #191d29);
+    border:1px solid var(--line);
+    border-left:3px solid var(--red);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    position:relative;
+  }
+  .exam-card .del-btn{position:absolute;top:8px;left:8px;}
+  .exam-card .exam-days{
+    font-size:26px;font-weight:800;color:var(--red);line-height:1;
+  }
+  .exam-card .exam-days small{font-size:12px;font-weight:700;color:var(--ink-dim);margin-right:4px;}
+  .exam-card .exam-name{font-size:14px;font-weight:700;margin-top:8px;}
+  .exam-card .exam-date{font-size:12px;color:var(--ink-dim);margin-top:2px;}
+  .exam-card.today{border-left-color:var(--amber);}
+  .exam-card.today .exam-days{color:var(--amber);}
+  .exam-card.past{opacity:0.55;}
+
+  .exam-add-form{display:flex;gap:10px;flex-wrap:wrap;}
+  .exam-add-form input{
+    flex:1;min-width:150px;
+    background:#10131a;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .exam-add-form input:focus{outline:none;border-color:var(--red);}
+  .exam-add-form button{flex:0 0 auto;}
+
+  /* Backup section */
+  .backup-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .backup-note{font-size:12.5px;color:var(--ink-dim);margin-top:10px;line-height:1.6;}
+
+  /* Upcoming revision schedule — day-by-day list */
+  .day-row{
+    display:flex;gap:14px;
+    padding:12px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  .day-row:last-child{border-bottom:none;}
+  .day-num-box{
+    flex:0 0 52px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:8px 4px;
+    text-align:center;
+  }
+  .day-row.is-today .day-num-box{background:var(--amber-dim);border-color:var(--amber);}
+  .day-num{font-size:19px;font-weight:800;line-height:1;color:var(--ink);}
+  .day-row.is-today .day-num{color:var(--amber);}
+  .day-weekday{font-size:10px;color:var(--ink-dim);margin-top:3px;}
+  .day-rel{font-size:9px;color:var(--amber);font-weight:700;margin-top:2px;}
+  .day-items{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:center;}
+  .day-item{
+    font-size:13.5px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .day-item .rev-tag{
+    font-size:10.5px;color:var(--ink-dim);
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    padding:1px 8px;border-radius:999px;
+  }
+
+  /* Schedule tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .tab-btn{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    padding:8px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+  }
+  .tab-btn.active{background:var(--amber);color:#1c1408;border-color:var(--amber);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* Calendar */
+  .cal-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .cal-month-label{font-size:15px;font-weight:700;}
+  .cal-nav-btn{
+    background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;
+  }
+  .cal-nav-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .cal-weekdays{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    margin-bottom:6px;
+  }
+  .cal-weekdays span{
+    text-align:center;font-size:10.5px;color:var(--ink-dim);font-weight:600;
+  }
+  .cal-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    gap:5px;
+  }
+  .cal-cell{
+    aspect-ratio:1;
+    background:#10131a;
+    border:1px solid var(--line);
+    border-radius:9px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;
+    position:relative;
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .cal-cell.empty{background:transparent;border:none;cursor:default;}
+  .cal-cell:not(.empty):hover{border-color:var(--slate);}
+  .cal-cell.is-today{border-color:var(--amber);color:var(--amber);font-weight:700;}
+  .cal-cell.is-selected{background:var(--amber-dim);border-color:var(--amber);}
+  .cal-cell .cal-dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--amber);
+    position:absolute;bottom:6px;
+  }
+  .cal-cell.has-missed .cal-dot{background:var(--red);}
+  .cal-detail{
+    margin-top:16px;padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .cal-detail-title{
+    font-size:12.5px;font-weight:700;color:var(--ink-dim);margin-bottom:10px;
+  }
+
+  /* Sync section */
+  .sync-toggle{
+    display:flex;align-items:center;gap:7px;
+    font-size:13px;color:var(--ink-dim);
+    cursor:pointer;
+  }
+  .sync-toggle input{width:15px;height:15px;}
+  .sync-status{
+    font-size:12.5px;color:var(--ink-dim);
+    margin-top:10px;
+    padding:8px 10px;
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+  .sync-status.ok{color:#7fbf7f;border-color:#3a5a3a;}
+  .sync-status.err{color:var(--red);border-color:#5a3a3a;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">SPACED REPETITION</div>
+    <h1>পুনরাবৃত্তি ট্র্যাকার</h1>
+    <p>একটা চ্যাপ্টার পড়ার পর ৩ দিন, ৭ দিন আর ১৫ দিন পর — এই তিনবার রিভিউ দিলে সেটা স্থায়ীভাবে মনে থাকে। এখানে চ্যাপ্টার যোগ করলে অ্যাপ নিজেই হিসেব করে কবে কোনটা রিভিউ দিতে হবে।</p>
+    <div class="today-date" id="todayDateLabel"></div>
+  </header>
+
+  <section>
+    <div class="sec-title">পরীক্ষা <span class="count" id="examCount">0</span></div>
+    <div id="examScroll" class="exam-scroll"></div>
+    <div class="card" style="margin-top:10px;">
+      <div class="exam-add-form">
+        <input type="text" id="examName" placeholder="পরীক্ষার নাম, যেমনঃ SAT / Physics Final">
+        <input type="date" id="examDate">
+        <button class="btn btn-red" id="addExamBtn">যোগ করুন</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="appTabBtnHome" onclick="switchAppTab('home')">হোম</button>
+    <button class="tab-btn" id="appTabBtnSettings" onclick="switchAppTab('settings')">সেটিংস</button>
+  </div>
+
+  <div class="tab-panel active" id="appPanelHome">
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabBtnList" onclick="switchScheduleTab('list')">তালিকা</button>
+      <button class="tab-btn" id="tabBtnCal" onclick="switchScheduleTab('calendar')">ক্যালেন্ডার</button>
+    </div>
+
+    <div class="tab-panel active" id="panelList">
+      <section>
+        <div class="sec-title">আজকের রিভিউ <span class="count" id="dueCount">0</span></div>
+        <div id="dueList"></div>
+      </section>
+
+      <section id="missedSection">
+        <div class="sec-title red">মিস হয়ে যাওয়া রিভিউ <span class="count" id="missedCount">0</span></div>
+        <div id="missedList"></div>
+      </section>
+
+      <section>
+        <div class="sec-title">আগামী দিনের রিভিশন <span class="count" id="upcomingCount">0</span></div>
+        <div class="card" id="upcomingCard">
+          <div id="upcomingList"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" id="panelCalendar">
+      <section>
+        <div class="sec-title">রিভিশন ক্যালেন্ডার</div>
+        <div class="card">
+          <div class="cal-header">
+            <button class="cal-nav-btn" id="calPrevBtn">‹</button>
+            <div class="cal-month-label" id="calMonthLabel"></div>
+            <button class="cal-nav-btn" id="calNextBtn">›</button>
+          </div>
+          <div class="cal-weekdays" id="calWeekdays"></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-detail" id="calDetail"></div>
+        </div>
+      </section>
+    </div>
+
+    <section>
+      <div class="sec-title">নতুন চ্যাপ্টার যোগ করুন</div>
+      <div class="card">
+        <div class="add-form">
+          <input type="text" id="chapSubject" list="subjectSuggestions" placeholder="সাবজেক্ট, যেমনঃ English" autocomplete="off">
+          <datalist id="subjectSuggestions"></datalist>
+          <input type="text" id="chapName" placeholder="চ্যাপ্টারের নাম, যেমনঃ Tense">
+          <input type="date" id="chapDate">
+          <button class="btn btn-amber" id="addBtn">যোগ করুন</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-title">সব চ্যাপ্টার <span class="count" id="chapCount">0</span></div>
+      <div class="subject-tabs" id="subjectTabs"></div>
+      <div id="chapterList"></div>
+    </section>
+
+  </div>
+
+  <div class="tab-panel" id="appPanelSettings">
+
+    <section>
+      <div class="sec-title">ব্যাকআপ</div>
+      <div class="card">
+        <div class="backup-row">
+          <button class="btn btn-amber" id="exportBtn">এক্সপোর্ট করুন (ডাউনলোড)</button>
+          <button class="btn btn-ghost" id="importBtn">ইমপোর্ট করুন</button>
+          <input type="file" id="importFile" accept="application/json" style="display:none;">
+        </div>
+        <div class="backup-note">এক্সপোর্ট করলে আপনার সব চ্যাপ্টার আর পরীক্ষার ডেটা একটা ফাইলে সেভ হয়ে ডাউনলোড হবে। ইমপোর্ট করলে সেই ফাইলের ডেটা বর্তমান ডেটার সাথে যোগ (merge) হবে — আগের কিছু মুছে যাবে না, আর একই চ্যাপ্টার/পরীক্ষা আগে থেকে থাকলে সেটা দুইবার যোগ হবে না।</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-title">ডিভাইস সিঙ্ক (GitHub)</div>
+      <div class="card">
+        <div class="add-form" style="grid-template-columns:1fr 1fr;">
+          <input type="text" id="syncOwner" placeholder="GitHub ইউজারনেম">
+          <input type="text" id="syncRepo" placeholder="রিপোজিটরির নাম">
+          <input type="password" id="syncToken" placeholder="Personal Access Token">
+          <input type="text" id="syncPath" placeholder="ফাইলের নাম (ডিফল্ট: revtrack-data.json)">
+        </div>
+        <div class="backup-row" style="margin-top:10px;">
+          <button class="btn btn-amber" id="syncSaveBtn">সেভ করুন</button>
+          <button class="btn btn-ghost" id="syncNowBtn">এখনই সিঙ্ক করুন</button>
+          <label class="sync-toggle"><input type="checkbox" id="syncEnabled"> স্বয়ংক্রিয় সিঙ্ক চালু</label>
+        </div>
+        <div class="sync-status" id="syncStatus">সিঙ্ক এখনো সেটআপ করা হয়নি।</div>
+        <div class="backup-note">
+          এই ফিচার আপনার নিজের একটা <b>প্রাইভেট GitHub রিপো</b>-কে স্টোরেজ হিসেবে ব্যবহার করে, যাতে একাধিক ডিভাইস থেকে একই ডেটা দেখা যায়। টোকেন বানানোর নিয়ম:
+          GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → নতুন টোকেন বানান, শুধু ঐ একটা রিপোর জন্য <b>Contents: Read and write</b> পারমিশন দিন।
+          টোকেনটা শুধু আপনার এই ব্রাউজারেই সেভ থাকবে, কারো সাথে শেয়ার করবেন না।
+          <br><br>
+          এখন ডিলিট করাও সিঙ্ক হয় — কোনো ডিভাইসে একটা চ্যাপ্টার/পরীক্ষা মুছে ফেললে, সিঙ্কের সময় সেটা বাকি ডিভাইসেও মুছে যাবে।
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</div>
+
+<script>
+let chapters = [];
+let exams = [];
+let loaded = false;
+let activeSubject = 'সব';
+function switchAppTab(tab){
+  document.getElementById('appPanelHome').classList.toggle('active', tab==='home');
+  document.getElementById('appPanelSettings').classList.toggle('active', tab==='settings');
+  document.getElementById('appTabBtnHome').classList.toggle('active', tab==='home');
+  document.getElementById('appTabBtnSettings').classList.toggle('active', tab==='settings');
+}
+const BN_MONTHS_FULL = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const BN_WEEKDAYS_SHORT = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
+let calYear, calMonth; // 0-indexed month, initialized in init()
+let selectedCalDate = null;
+
+function switchScheduleTab(tab){
+  document.getElementById('panelList').classList.toggle('active', tab==='list');
+  document.getElementById('panelCalendar').classList.toggle('active', tab==='calendar');
+  document.getElementById('tabBtnList').classList.toggle('active', tab==='list');
+  document.getElementById('tabBtnCal').classList.toggle('active', tab==='calendar');
+  if(tab==='calendar') renderCalendar();
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+}
+function addDays(dateStr, days){
+  const d = new Date(dateStr+"T00:00:00");
+  d.setDate(d.getDate()+days);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+}
+function fmtBn(dateStr){
+  const months = ["জানু","ফেব্রু","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্ট","অক্টো","নভে","ডিসে"];
+  const d = new Date(dateStr+"T00:00:00");
+  return d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();
+}
+
+function activeChapters(){ return chapters.filter(c=>!c.deleted); }
+function activeExams(){ return exams.filter(e=>!e.deleted); }
+
+function recompute(){
+  const t = todayStr();
+  chapters.forEach(ch=>{
+    if(ch.deleted) return;
+    ch.reviews.forEach(r=>{
+      if(r.status === 'done' || r.status === 'done_late') return;
+      if(r.dueDate < t) r.status = 'missed';
+      else if(r.dueDate === t) r.status = 'due';
+      else r.status = 'pending';
+    });
+  });
+}
+
+async function save(){
+  try{
+    localStorage.setItem('revtrack_chapters', JSON.stringify(chapters));
+  }catch(e){ console.error('save failed', e); }
+  scheduleSync();
+}
+async function load(){
+  try{
+    const raw = localStorage.getItem('revtrack_chapters');
+    if(raw) chapters = JSON.parse(raw);
+  }catch(e){ chapters = []; }
+  loaded = true;
+}
+async function saveExams(){
+  try{
+    localStorage.setItem('revtrack_exams', JSON.stringify(exams));
+  }catch(e){ console.error('save exams failed', e); }
+  scheduleSync();
+}
+async function loadExams(){
+  try{
+    const raw = localStorage.getItem('revtrack_exams');
+    if(raw) exams = JSON.parse(raw);
+  }catch(e){ exams = []; }
+}
+function deleteExam(id){
+  const ex = exams.find(e=>e.id===id);
+  if(!ex) return;
+  ex.deleted = true;
+  ex.deletedAt = Date.now();
+  ex.updatedAt = Date.now();
+  saveExams(); render();
+}
+
+function markDone(chapId, days){
+  const ch = chapters.find(c=>c.id===chapId);
+  const r = ch.reviews.find(rv=>rv.days===days);
+  r.status = 'done';
+  r.doneDate = todayStr();
+  ch.updatedAt = Date.now();
+  save(); render();
+}
+function markDoneLate(chapId, days){
+  const ch = chapters.find(c=>c.id===chapId);
+  const r = ch.reviews.find(rv=>rv.days===days);
+  r.status = 'done_late';
+  r.doneDate = todayStr();
+  ch.updatedAt = Date.now();
+  save(); render();
+}
+function deleteChapter(id){
+  const ch = chapters.find(c=>c.id===id);
+  if(!ch) return;
+  ch.deleted = true;
+  ch.deletedAt = Date.now();
+  ch.updatedAt = Date.now();
+  save(); render();
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const subjectInput = document.getElementById('chapSubject');
+  const nameInput = document.getElementById('chapName');
+  const dateInput = document.getElementById('chapDate');
+  const subject = subjectInput.value.trim() || 'সাধারণ';
+  const name = nameInput.value.trim();
+  const date = dateInput.value || todayStr();
+  if(!name){ nameInput.focus(); return; }
+  const ch = {
+    id: genId('c'),
+    subject,
+    name,
+    studyDate: date,
+    updatedAt: Date.now(),
+    reviews: [3,7,15].map(days=>({
+      days,
+      dueDate: addDays(date, days),
+      status: 'pending',
+      doneDate: null
+    }))
+  };
+  chapters.push(ch);
+  recompute();
+  save();
+  subjectInput.value='';
+  nameInput.value='';
+  dateInput.value='';
+  render();
+});
+
+document.getElementById('addExamBtn').addEventListener('click', ()=>{
+  const nameInput = document.getElementById('examName');
+  const dateInput = document.getElementById('examDate');
+  const name = nameInput.value.trim();
+  const date = dateInput.value;
+  if(!name || !date){ (name? dateInput: nameInput).focus(); return; }
+  exams.push({ id: genId('e'), name, date, updatedAt: Date.now() });
+  saveExams();
+  nameInput.value=''; dateInput.value='';
+  render();
+});
+
+function dayLabel(days){
+  return days+" দিন পর";
+}
+
+function daysBetween(fromStr, toStr){
+  const a = new Date(fromStr+"T00:00:00");
+  const b = new Date(toStr+"T00:00:00");
+  return Math.round((b-a)/(1000*60*60*24));
+}
+
+function renderExams(){
+  const t = todayStr();
+  const exs = activeExams();
+  document.getElementById('examCount').textContent = exs.length;
+  const scroll = document.getElementById('examScroll');
+  scroll.innerHTML = '';
+  if(exs.length===0){
+    scroll.innerHTML = '<div class="empty" style="min-width:100%;">এখনো কোনো পরীক্ষা যোগ করা হয়নি।</div>';
+    return;
+  }
+  [...exs].sort((a,b)=> a.date.localeCompare(b.date)).forEach(ex=>{
+    const diff = daysBetween(t, ex.date);
+    let cls = 'exam-card';
+    let daysHtml;
+    if(diff > 0){
+      daysHtml = `<small>বাকি</small>${diff} <small>দিন</small>`;
+    } else if(diff === 0){
+      cls += ' today';
+      daysHtml = `আজই!`;
+    } else {
+      cls += ' past';
+      daysHtml = `<small>হয়ে গেছে</small>`;
+    }
+    const div = document.createElement('div');
+    div.className = cls;
+    div.innerHTML = `
+      <button class="del-btn" data-act="delExam" data-id="${ex.id}">✕</button>
+      <div class="exam-days">${daysHtml}</div>
+      <div class="exam-name">${escapeHtml(ex.name)}</div>
+      <div class="exam-date">${fmtBn(ex.date)}</div>
+    `;
+    scroll.appendChild(div);
+  });
+  document.querySelectorAll('[data-act="delExam"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteExam(btn.dataset.id));
+  });
+}
+
+const BN_DIGITS = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+const BN_WEEKDAYS = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+function toBn(n){ return String(n).split('').map(ch => /[0-9]/.test(ch) ? BN_DIGITS[+ch] : ch).join(''); }
+
+function relDateLabel(dueDate){
+  const t = todayStr();
+  const diff = daysBetween(t, dueDate);
+  if(diff === 0) return 'আজ';
+  if(diff === 1) return 'আগামীকাল';
+  return toBn(diff)+' দিন পরে';
+}
+
+function renderUpcoming(){
+  const list = document.getElementById('upcomingList');
+  let items = [];
+  activeChapters().forEach(ch=>{
+    ch.reviews.forEach(r=>{
+      if(r.status === 'pending') items.push({ch,r});
+    });
+  });
+  items.sort((a,b)=> a.r.dueDate.localeCompare(b.r.dueDate));
+  document.getElementById('upcomingCount').textContent = items.length;
+  list.innerHTML = '';
+  if(items.length === 0){
+    list.innerHTML = '<div class="empty">আগামীতে কোনো রিভিশন বাকি নেই।</div>';
+    return;
+  }
+  // group by due date, in ascending date order — 25, 26, 27, 28 ...
+  const groups = [];
+  items.forEach(item=>{
+    let g = groups.find(g=>g.date===item.r.dueDate);
+    if(!g){ g = {date:item.r.dueDate, items:[]}; groups.push(g); }
+    g.items.push(item);
+  });
+  groups.forEach(g=>{
+    const d = new Date(g.date+"T00:00:00");
+    const isToday = g.date === todayStr();
+    const row = document.createElement('div');
+    row.className = 'day-row' + (isToday ? ' is-today' : '');
+    row.innerHTML = `
+      <div class="day-num-box">
+        <div class="day-num">${toBn(d.getDate())}</div>
+        <div class="day-weekday">${BN_WEEKDAYS[d.getDay()]}</div>
+        <div class="day-rel">${relDateLabel(g.date)}</div>
+      </div>
+      <div class="day-items">
+        ${g.items.map(({ch,r}) => `
+          <div class="day-item">
+            <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+            <span>${escapeHtml(ch.name)}</span>
+            <span class="rev-tag">${dayLabel(r.days)} রিভিউ</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function ymd(y,m,d){ return y+"-"+pad2(m+1)+"-"+pad2(d); }
+
+function buildReviewMap(){
+  // date -> { items:[{ch,r}], hasMissed:bool }
+  const map = {};
+  activeChapters().forEach(ch=>{
+    ch.reviews.forEach(r=>{
+      if(r.status==='done' || r.status==='done_late') return; // only what's still owed
+      if(!map[r.dueDate]) map[r.dueDate] = { items:[], hasMissed:false };
+      map[r.dueDate].items.push({ch,r});
+      if(r.status==='missed') map[r.dueDate].hasMissed = true;
+    });
+  });
+  return map;
+}
+
+function renderCalendarDetail(reviewMap){
+  const detail = document.getElementById('calDetail');
+  const t = todayStr();
+  const d = new Date(selectedCalDate+"T00:00:00");
+  let label = toBn(d.getDate())+" "+BN_MONTHS_FULL[d.getMonth()];
+  if(selectedCalDate===t) label += ' (আজ)';
+  const entry = reviewMap[selectedCalDate];
+  let itemsHtml;
+  if(!entry || entry.items.length===0){
+    itemsHtml = '<div class="empty">এই দিনে কোনো রিভিশন নেই।</div>';
+  }else{
+    itemsHtml = entry.items.map(({ch,r})=>`
+      <div class="day-item">
+        <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+        <span>${escapeHtml(ch.name)}</span>
+        <span class="rev-tag">${dayLabel(r.days)} রিভিউ${r.status==='missed' ? ' &middot; মিস হয়ে গেছে' : ''}</span>
+      </div>
+    `).join('');
+  }
+  detail.innerHTML = `<div class="cal-detail-title">${label}</div>${itemsHtml}`;
+}
+
+function renderCalendar(){
+  if(calYear===undefined){
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+  }
+  if(!selectedCalDate) selectedCalDate = todayStr();
+
+  document.getElementById('calMonthLabel').textContent = BN_MONTHS_FULL[calMonth]+" "+toBn(calYear);
+
+  const weekdaysEl = document.getElementById('calWeekdays');
+  weekdaysEl.innerHTML = BN_WEEKDAYS_SHORT.map(w=>`<span>${w}</span>`).join('');
+
+  const reviewMap = buildReviewMap();
+  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  const numDays = new Date(calYear, calMonth+1, 0).getDate();
+  const t = todayStr();
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  for(let i=0;i<firstDow;i++){
+    const blank = document.createElement('div');
+    blank.className = 'cal-cell empty';
+    grid.appendChild(blank);
+  }
+  for(let day=1; day<=numDays; day++){
+    const dateStr = ymd(calYear, calMonth, day);
+    const entry = reviewMap[dateStr];
+    const cell = document.createElement('div');
+    let cls = 'cal-cell';
+    if(dateStr===t) cls += ' is-today';
+    if(dateStr===selectedCalDate) cls += ' is-selected';
+    if(entry && entry.hasMissed) cls += ' has-missed';
+    cell.className = cls;
+    cell.innerHTML = `${toBn(day)}${entry ? '<span class="cal-dot"></span>' : ''}`;
+    cell.addEventListener('click', ()=>{ selectedCalDate = dateStr; renderCalendar(); });
+    grid.appendChild(cell);
+  }
+
+  renderCalendarDetail(reviewMap);
+}
+
+document.getElementById('calPrevBtn').addEventListener('click', ()=>{
+  calMonth--;
+  if(calMonth<0){ calMonth=11; calYear--; }
+  renderCalendar();
+});
+document.getElementById('calNextBtn').addEventListener('click', ()=>{
+  calMonth++;
+  if(calMonth>11){ calMonth=0; calYear++; }
+  renderCalendar();
+});
+
+function render(){
+  recompute();
+  document.getElementById('todayDateLabel').textContent = "আজ: "+fmtBn(todayStr());
+  renderExams();
+  renderUpcoming();
+  renderCalendar();
+
+  // Today's due
+  const dueList = document.getElementById('dueList');
+  let dueItems = [];
+  activeChapters().forEach(ch=>{
+    ch.reviews.forEach(r=>{
+      if(r.status==='due') dueItems.push({ch,r});
+    });
+  });
+  document.getElementById('dueCount').textContent = dueItems.length;
+  dueList.innerHTML = '';
+  if(dueItems.length===0){
+    dueList.innerHTML = '<div class="empty">আজকে পড়ার জন্য কোনো রিভিউ নেই।</div>';
+  }else{
+    dueItems.forEach(({ch,r})=>{
+      const div = document.createElement('div');
+      div.className = 'card due-card';
+      div.innerHTML = `
+        <div class="due-info">
+          <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+          <div class="chap">${escapeHtml(ch.name)}</div>
+          <div class="meta">${dayLabel(r.days)} রিভিউ &middot; পড়া শুরু: ${fmtBn(ch.studyDate)}</div>
+        </div>
+        <button class="btn btn-amber" data-act="done" data-id="${ch.id}" data-days="${r.days}">পড়া হয়ে গেছে</button>
+      `;
+      dueList.appendChild(div);
+    });
+  }
+
+  // Missed
+  const missedList = document.getElementById('missedList');
+  let missedItems = [];
+  activeChapters().forEach(ch=>{
+    ch.reviews.forEach(r=>{
+      if(r.status==='missed') missedItems.push({ch,r});
+    });
+  });
+  document.getElementById('missedCount').textContent = missedItems.length;
+  missedList.innerHTML = '';
+  if(missedItems.length===0){
+    missedList.innerHTML = '<div class="empty">কোনো রিভিউ মিস হয়নি। চমৎকার!</div>';
+  }else{
+    missedItems.forEach(({ch,r})=>{
+      const div = document.createElement('div');
+      div.className = 'card due-card missed-card';
+      div.innerHTML = `
+        <div class="due-info">
+          <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+          <div class="chap">${escapeHtml(ch.name)}</div>
+          <div class="meta">${dayLabel(r.days)} রিভিউ মিস হয়ে গেছে &middot; নির্ধারিত তারিখ ছিল ${fmtBn(r.dueDate)}</div>
+        </div>
+        <button class="btn btn-red" data-act="late" data-id="${ch.id}" data-days="${r.days}">আলাদাভাবে সম্পন্ন করুন</button>
+      `;
+      missedList.appendChild(div);
+    });
+  }
+
+  // Subject filter tabs
+  const allActiveChapters = activeChapters();
+  document.getElementById('chapCount').textContent = allActiveChapters.length;
+  const subjectTabsEl = document.getElementById('subjectTabs');
+  const subjects = Array.from(new Set(allActiveChapters.map(c=>c.subject||'সাধারণ')));
+  if(!subjects.includes(activeSubject) && activeSubject!=='সব') activeSubject = 'সব';
+  const subjectSuggestionsEl = document.getElementById('subjectSuggestions');
+  subjectSuggestionsEl.innerHTML = subjects.map(s=>`<option value="${escapeHtml(s)}"></option>`).join('');
+  subjectTabsEl.innerHTML = '';
+  if(subjects.length>0){
+    const allTab = document.createElement('div');
+    allTab.className = 'subject-tab' + (activeSubject==='সব' ? ' active' : '');
+    allTab.textContent = 'সব';
+    allTab.addEventListener('click', ()=>{ activeSubject='সব'; render(); });
+    subjectTabsEl.appendChild(allTab);
+    subjects.forEach(s=>{
+      const tab = document.createElement('div');
+      tab.className = 'subject-tab' + (activeSubject===s ? ' active' : '');
+      tab.textContent = s;
+      tab.addEventListener('click', ()=>{ activeSubject=s; render(); });
+      subjectTabsEl.appendChild(tab);
+    });
+  }
+
+  // Chapter list
+  const chapterList = document.getElementById('chapterList');
+  chapterList.innerHTML = '';
+  const visibleChapters = allActiveChapters.filter(c=> activeSubject==='সব' || (c.subject||'সাধারণ')===activeSubject);
+  if(allActiveChapters.length===0){
+    chapterList.innerHTML = '<div class="empty">এখনো কোনো চ্যাপ্টার যোগ করা হয়নি। উপরে ফর্ম থেকে একটা যোগ করুন।</div>';
+  }else if(visibleChapters.length===0){
+    chapterList.innerHTML = '<div class="empty">এই সাবজেক্টে কোনো চ্যাপ্টার নেই।</div>';
+  }else{
+    [...visibleChapters].sort((a,b)=> b.studyDate.localeCompare(a.studyDate)).forEach(ch=>{
+      const doneCount = ch.reviews.filter(r=>r.status==='done'||r.status==='done_late').length;
+      const pct = Math.round((doneCount/3)*100);
+      const div = document.createElement('div');
+      div.className = 'card chapter';
+      div.innerHTML = `
+        <div class="chapter-head">
+          <div>
+            <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+            <div class="name">${escapeHtml(ch.name)}</div>
+            <div class="sub">পড়া শুরু: ${fmtBn(ch.studyDate)}</div>
+          </div>
+          <button class="del-btn" data-act="del" data-id="${ch.id}">মুছুন</button>
+        </div>
+        <div class="orbit-row">
+          ${ch.reviews.map(r=>{
+            let dotClass = r.status;
+            let symbol = '';
+            if(r.status==='done') symbol='✓';
+            else if(r.status==='done_late') symbol='✓';
+            else if(r.status==='missed') symbol='!';
+            else if(r.status==='due') symbol='●';
+            else symbol = '';
+            return `<div class="orbit">
+              <div class="dot ${dotClass}">${symbol}</div>
+              <div class="lbl ${r.status==='due'?'active':''}">${dayLabel(r.days)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      `;
+      chapterList.appendChild(div);
+    });
+  }
+
+  // bind buttons
+  document.querySelectorAll('[data-act="done"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> markDone(btn.dataset.id, parseInt(btn.dataset.days)));
+  });
+  document.querySelectorAll('[data-act="late"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> markDoneLate(btn.dataset.id, parseInt(btn.dataset.days)));
+  });
+  document.querySelectorAll('[data-act="del"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(confirm('এই চ্যাপ্টারটা মুছে ফেলতে চান?')) deleteChapter(btn.dataset.id);
+    });
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+let idCounter = 0;
+function genId(prefix){
+  idCounter += 1;
+  return prefix + Date.now().toString(36) + idCounter + Math.random().toString(36).slice(2,7);
+}
+
+// Merges incomingArr into existingArr, matching only by id (newest updatedAt
+// wins, so edits/deletes/adds all propagate the same way). We used to also
+// fold entries that merely *looked* the same (same subject+name+date, or same
+// exam name+date) into one — but that silently deleted genuinely different
+// chapters/exams whenever their subject, name, and date happened to match
+// (e.g. two different exams that just happen to fall on the same date, or two
+// chapters with a commonly-reused name). Matching by id only is exactly as
+// safe for real duplicates (they'll always have the same id) and never
+// discards a distinct record.
+function mergeRecords(existingArr, incomingArr){
+  const byId = new Map();
+  existingArr.forEach(item => byId.set(item.id, item));
+  incomingArr.forEach(item => {
+    const cur = byId.get(item.id);
+    if(!cur || (item.updatedAt||0) > (cur.updatedAt||0)) byId.set(item.id, item);
+  });
+  return Array.from(byId.values());
+}
+
+/* ---------- GitHub device sync ---------- */
+let syncSha = null; // last known remote file sha, for conflict-safe writes
+let syncDebounceTimer = null;
+let syncInFlight = false;
+
+function getSyncConfig(){
+  try{
+    const raw = localStorage.getItem('revtrack_sync_cfg');
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveSyncConfig(cfg){
+  localStorage.setItem('revtrack_sync_cfg', JSON.stringify(cfg));
+}
+function setSyncStatus(msg, cls){
+  const el = document.getElementById('syncStatus');
+  el.textContent = msg;
+  el.className = 'sync-status' + (cls ? ' '+cls : '');
+}
+
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+    (match, p1) => String.fromCharCode('0x'+p1)));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(atob(str.replace(/\n/g,'')).split('').map(c =>
+    '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+}
+
+function ghHeaders(token){
+  return {
+    'Authorization': 'Bearer ' + token,
+    'Accept': 'application/vnd.github+json'
+  };
+}
+function ghUrl(cfg){
+  return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.path}`;
+}
+
+async function githubGetFile(cfg){
+  // cache:'no-store' plus a unique query param stop the browser (and any
+  // intermediate cache) from serving a stale response for this URL — without
+  // this, a device could keep seeing an old version of the file even after
+  // another device pushed new data.
+  const bustUrl = ghUrl(cfg) + '?_=' + Date.now();
+  const res = await fetch(bustUrl, { headers: ghHeaders(cfg.token), cache: 'no-store' });
+  if(res.status === 404){ return null; }
+  if(!res.ok){ throw new Error('GitHub থেকে ডেটা আনতে সমস্যা (স্ট্যাটাস '+res.status+')। ইউজারনেম/রিপো/টোকেন ঠিক আছে কিনা দেখুন।'); }
+  const json = await res.json();
+  syncSha = json.sha;
+  const text = b64DecodeUnicode(json.content);
+  return JSON.parse(text);
+}
+
+async function githubPutFile(cfg, dataObj, message){
+  const body = {
+    message: message || 'sync from revision tracker',
+    content: b64EncodeUnicode(JSON.stringify(dataObj, null, 2))
+  };
+  if(syncSha) body.sha = syncSha;
+  const res = await fetch(ghUrl(cfg), {
+    method: 'PUT',
+    headers: { ...ghHeaders(cfg.token), 'Content-Type':'application/json' },
+    body: JSON.stringify(body)
+  });
+  if(res.status === 409){ return 'conflict'; }
+  if(!res.ok){ throw new Error('GitHub-এ ডেটা সেভ করতে সমস্যা (স্ট্যাটাস '+res.status+')।'); }
+  const json = await res.json();
+  syncSha = json.content.sha;
+  return 'ok';
+}
+
+async function pullAndMerge(cfg){
+  const remote = await githubGetFile(cfg);
+  if(!remote) return { changed:0, hadRemote:false };
+  const beforeCount = activeChapters().length + activeExams().length;
+  chapters = mergeRecords(chapters, remote.chapters || []);
+  exams = mergeRecords(exams, remote.exams || []);
+  recompute();
+  const afterCount = activeChapters().length + activeExams().length;
+  return { changed: afterCount - beforeCount, hadRemote: true };
+}
+
+async function pushToGithub(retry){
+  const cfg = getSyncConfig();
+  if(!cfg || !cfg.enabled || !cfg.owner || !cfg.repo || !cfg.token) return;
+  if(syncInFlight) return;
+  syncInFlight = true;
+  setSyncStatus('সিঙ্ক হচ্ছে…');
+  try{
+    const result = await githubPutFile(cfg, { chapters, exams, updatedAt: new Date().toISOString() });
+    if(result === 'conflict' && !retry){
+      // someone else pushed since our last pull — merge remote in, then retry once
+      await pullAndMerge(cfg);
+      await save(); await saveExams();
+      syncInFlight = false;
+      return pushToGithub(true);
+    }
+    setSyncStatus('সর্বশেষ সিঙ্ক: '+new Date().toLocaleString('bn-BD'), 'ok');
+  }catch(err){
+    setSyncStatus(err.message || 'সিঙ্ক ব্যর্থ হয়েছে।', 'err');
+  }
+  syncInFlight = false;
+}
+
+function scheduleSync(){
+  const cfg = getSyncConfig();
+  if(!cfg || !cfg.enabled) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => pushToGithub(false), 2500);
+}
+
+async function syncNow(){
+  const cfg = getSyncConfig();
+  if(!cfg || !cfg.owner || !cfg.repo || !cfg.token){
+    setSyncStatus('আগে ইউজারনেম, রিপো আর টোকেন দিয়ে সেভ করুন।', 'err');
+    return;
+  }
+  setSyncStatus('সিঙ্ক হচ্ছে…');
+  try{
+    const result = await pullAndMerge(cfg);
+    await save(); await saveExams();
+    render();
+    await pushToGithub(false);
+    const time = new Date().toLocaleString('bn-BD');
+    if(result.hadRemote){
+      setSyncStatus(`সিঙ্ক সম্পন্ন — GitHub-এর ডেটার সাথে মিলিয়ে নেওয়া হয়েছে। ${time}`, 'ok');
+    }else{
+      setSyncStatus(`সতর্কতা: এই ইউজারনেম/রিপো/ফাইলের নামে GitHub-এ কোনো আগের ডেটা পাওয়া যায়নি, তাই এখান থেকেই নতুন করে আপলোড করা হলো (${time})। অন্য ডিভাইসের ডেটা এখানে আসার কথা থাকলে, ইউজারনেম/রিপোর নাম/ফাইলের নাম দুই ডিভাইসে অক্ষরে অক্ষরে এক আছে কিনা মিলিয়ে দেখুন।`, 'err');
+    }
+  }catch(err){
+    setSyncStatus(err.message || 'সিঙ্ক ব্যর্থ হয়েছে।', 'err');
+  }
+}
+
+function loadSyncUI(){
+  const cfg = getSyncConfig();
+  if(!cfg) return;
+  document.getElementById('syncOwner').value = cfg.owner || '';
+  document.getElementById('syncRepo').value = cfg.repo || '';
+  document.getElementById('syncToken').value = cfg.token || '';
+  document.getElementById('syncPath').value = cfg.path || '';
+  document.getElementById('syncEnabled').checked = !!cfg.enabled;
+  if(cfg.enabled) setSyncStatus('স্বয়ংক্রিয় সিঙ্ক চালু আছে।', 'ok');
+}
+
+document.getElementById('syncSaveBtn').addEventListener('click', () => {
+  const cfg = {
+    owner: document.getElementById('syncOwner').value.trim(),
+    repo: document.getElementById('syncRepo').value.trim(),
+    token: document.getElementById('syncToken').value.trim(),
+    path: document.getElementById('syncPath').value.trim() || 'revtrack-data.json',
+    enabled: document.getElementById('syncEnabled').checked
+  };
+  if(!cfg.owner || !cfg.repo || !cfg.token){
+    setSyncStatus('ইউজারনেম, রিপো আর টোকেন — তিনটাই দিতে হবে।', 'err');
+    return;
+  }
+  syncSha = null;
+  saveSyncConfig(cfg);
+  setSyncStatus('সেভ হয়েছে। এখন "এখনই সিঙ্ক করুন" চাপুন।', 'ok');
+});
+document.getElementById('syncNowBtn').addEventListener('click', syncNow);
+document.getElementById('syncEnabled').addEventListener('change', (e) => {
+  const cfg = getSyncConfig() || {};
+  cfg.enabled = e.target.checked;
+  saveSyncConfig(cfg);
+});
+
+function exportData(){
+  const payload = {
+    exportedAt: todayStr(),
+    chapters,
+    exams
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'review-tracker-backup-'+todayStr()+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      const incomingChapters = Array.isArray(data.chapters) ? data.chapters : [];
+      const incomingExams = Array.isArray(data.exams) ? data.exams : [];
+      if(!Array.isArray(data.chapters) && !Array.isArray(data.exams)){
+        // Previously this also rejected the whole file if EITHER field was
+        // missing — so a backup made by an older version of this app (before
+        // exams existed, or vice versa) would fail to import its chapters
+        // too, even though those were perfectly fine. Now we only reject if
+        // neither field is present at all.
+        alert('ফাইলটা সঠিক ফরম্যাটে নেই।');
+        return;
+      }
+      const beforeCount = activeChapters().length + activeExams().length;
+      chapters = mergeRecords(chapters, incomingChapters);
+      exams = mergeRecords(exams, incomingExams);
+      recompute();
+      await save();
+      await saveExams();
+      render();
+      const afterCount = activeChapters().length + activeExams().length;
+      const diff = afterCount - beforeCount;
+      alert(`ইমপোর্ট সম্পন্ন হয়েছে।\nনতুন যোগ হয়েছে: ${Math.max(diff,0)}টি\nবর্তমানে মোট: ${activeChapters().length}টি চ্যাপ্টার, ${activeExams().length}টি পরীক্ষা`);
+    }catch(err){
+      alert('ফাইল পড়তে সমস্যা হয়েছে, এটা সঠিক ব্যাকআপ ফাইল কিনা যাচাই করুন।');
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(file) importData(file);
+  e.target.value = '';
+});
+
+(async function init(){
+  document.getElementById('chapterList').innerHTML = '<div class="loading">লোড হচ্ছে…</div>';
+  await load();
+  await loadExams();
+  loadSyncUI();
+  render();
+
+  const cfg = getSyncConfig();
+  if(cfg && cfg.enabled && cfg.owner && cfg.repo && cfg.token){
+    try{
+      setSyncStatus('সিঙ্ক হচ্ছে…');
+      const result = await pullAndMerge(cfg);
+      await save(); await saveExams();
+      render();
+      setSyncStatus(result.hadRemote
+        ? 'সিঙ্ক সম্পন্ন। ডেটা আপডেট করা হয়েছে।'
+        : 'GitHub-এ এই ইউজারনেম/রিপো/ফাইলের নামে কোনো আগের ডেটা পাওয়া যায়নি (এটা কি প্রথমবার সিঙ্ক, নাকি অন্য ডিভাইসে দেওয়া তথ্যের সাথে হুবহু মিলছে না — চেক করুন)।', result.hadRemote ? 'ok' : 'err');
+    }catch(err){
+      setSyncStatus(err.message || 'সিঙ্ক ব্যর্থ হয়েছে।', 'err');
+    }
+  }
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
