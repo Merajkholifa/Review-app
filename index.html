@@ -467,7 +467,8 @@
       <div class="sec-title">নতুন চ্যাপ্টার যোগ করুন</div>
       <div class="card">
         <div class="add-form">
-          <input type="text" id="chapSubject" placeholder="সাবজেক্ট, যেমনঃ English">
+          <input type="text" id="chapSubject" list="subjectSuggestions" placeholder="সাবজেক্ট, যেমনঃ English" autocomplete="off">
+          <datalist id="subjectSuggestions"></datalist>
           <input type="text" id="chapName" placeholder="চ্যাপ্টারের নাম, যেমনঃ Tense">
           <input type="date" id="chapDate">
           <button class="btn btn-amber" id="addBtn">যোগ করুন</button>
@@ -649,7 +650,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   const date = dateInput.value || todayStr();
   if(!name){ nameInput.focus(); return; }
   const ch = {
-    id: 'c'+Date.now(),
+    id: genId('c'),
     subject,
     name,
     studyDate: date,
@@ -676,7 +677,7 @@ document.getElementById('addExamBtn').addEventListener('click', ()=>{
   const name = nameInput.value.trim();
   const date = dateInput.value;
   if(!name || !date){ (name? dateInput: nameInput).focus(); return; }
-  exams.push({ id:'e'+Date.now(), name, date, updatedAt: Date.now() });
+  exams.push({ id: genId('e'), name, date, updatedAt: Date.now() });
   saveExams();
   nameInput.value=''; dateInput.value='';
   render();
@@ -950,6 +951,8 @@ function render(){
   const subjectTabsEl = document.getElementById('subjectTabs');
   const subjects = Array.from(new Set(allActiveChapters.map(c=>c.subject||'সাধারণ')));
   if(!subjects.includes(activeSubject) && activeSubject!=='সব') activeSubject = 'সব';
+  const subjectSuggestionsEl = document.getElementById('subjectSuggestions');
+  subjectSuggestionsEl.innerHTML = subjects.map(s=>`<option value="${escapeHtml(s)}"></option>`).join('');
   subjectTabsEl.innerHTML = '';
   if(subjects.length>0){
     const allTab = document.createElement('div');
@@ -1028,31 +1031,29 @@ function escapeHtml(s){
   return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-function chapterKey(ch){ return (ch.subject||'')+'||'+ch.name+'||'+ch.studyDate; }
-function examKey(ex){ return ex.name+'||'+ex.date; }
+let idCounter = 0;
+function genId(prefix){
+  idCounter += 1;
+  return prefix + Date.now().toString(36) + idCounter + Math.random().toString(36).slice(2,7);
+}
 
-// Merges incomingArr into existingArr: matches by id first (newest updatedAt
-// wins, so edits/deletes/adds all propagate the same way), then folds any
-// leftover accidental duplicates that share the same content key but got
-// different ids (e.g. entered separately on two devices before ever syncing).
-function mergeRecords(existingArr, incomingArr, keyFn){
+// Merges incomingArr into existingArr, matching only by id (newest updatedAt
+// wins, so edits/deletes/adds all propagate the same way). We used to also
+// fold entries that merely *looked* the same (same subject+name+date, or same
+// exam name+date) into one — but that silently deleted genuinely different
+// chapters/exams whenever their subject, name, and date happened to match
+// (e.g. two different exams that just happen to fall on the same date, or two
+// chapters with a commonly-reused name). Matching by id only is exactly as
+// safe for real duplicates (they'll always have the same id) and never
+// discards a distinct record.
+function mergeRecords(existingArr, incomingArr){
   const byId = new Map();
   existingArr.forEach(item => byId.set(item.id, item));
   incomingArr.forEach(item => {
     const cur = byId.get(item.id);
     if(!cur || (item.updatedAt||0) > (cur.updatedAt||0)) byId.set(item.id, item);
   });
-  let merged = Array.from(byId.values());
-
-  const byKey = new Map();
-  merged.forEach(item => {
-    const k = keyFn(item);
-    const cur = byKey.get(k);
-    if(!cur){ byKey.set(k, item); return; }
-    const aT = cur.updatedAt||0, bT = item.updatedAt||0;
-    if(bT > aT || (bT===aT && cur.deleted && !item.deleted)) byKey.set(k, item);
-  });
-  return Array.from(byKey.values());
+  return Array.from(byId.values());
 }
 
 /* ---------- GitHub device sync ---------- */
@@ -1095,7 +1096,12 @@ function ghUrl(cfg){
 }
 
 async function githubGetFile(cfg){
-  const res = await fetch(ghUrl(cfg), { headers: ghHeaders(cfg.token) });
+  // cache:'no-store' plus a unique query param stop the browser (and any
+  // intermediate cache) from serving a stale response for this URL — without
+  // this, a device could keep seeing an old version of the file even after
+  // another device pushed new data.
+  const bustUrl = ghUrl(cfg) + '?_=' + Date.now();
+  const res = await fetch(bustUrl, { headers: ghHeaders(cfg.token), cache: 'no-store' });
   if(res.status === 404){ return null; }
   if(!res.ok){ throw new Error('GitHub থেকে ডেটা আনতে সমস্যা (স্ট্যাটাস '+res.status+')। ইউজারনেম/রিপো/টোকেন ঠিক আছে কিনা দেখুন।'); }
   const json = await res.json();
@@ -1126,8 +1132,8 @@ async function pullAndMerge(cfg){
   const remote = await githubGetFile(cfg);
   if(!remote) return { changed:0, hadRemote:false };
   const beforeCount = activeChapters().length + activeExams().length;
-  chapters = mergeRecords(chapters, remote.chapters || [], chapterKey);
-  exams = mergeRecords(exams, remote.exams || [], examKey);
+  chapters = mergeRecords(chapters, remote.chapters || []);
+  exams = mergeRecords(exams, remote.exams || []);
   recompute();
   const afterCount = activeChapters().length + activeExams().length;
   return { changed: afterCount - beforeCount, hadRemote: true };
@@ -1238,13 +1244,20 @@ function importData(file){
   reader.onload = async (e)=>{
     try{
       const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.chapters) || !Array.isArray(data.exams)){
+      const incomingChapters = Array.isArray(data.chapters) ? data.chapters : [];
+      const incomingExams = Array.isArray(data.exams) ? data.exams : [];
+      if(!Array.isArray(data.chapters) && !Array.isArray(data.exams)){
+        // Previously this also rejected the whole file if EITHER field was
+        // missing — so a backup made by an older version of this app (before
+        // exams existed, or vice versa) would fail to import its chapters
+        // too, even though those were perfectly fine. Now we only reject if
+        // neither field is present at all.
         alert('ফাইলটা সঠিক ফরম্যাটে নেই।');
         return;
       }
       const beforeCount = activeChapters().length + activeExams().length;
-      chapters = mergeRecords(chapters, data.chapters, chapterKey);
-      exams = mergeRecords(exams, data.exams, examKey);
+      chapters = mergeRecords(chapters, incomingChapters);
+      exams = mergeRecords(exams, incomingExams);
       recompute();
       await save();
       await saveExams();
