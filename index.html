@@ -552,6 +552,24 @@
   .ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);animation:rip .55s ease-out;pointer-events:none}
   @keyframes rip{to{transform:scale(1);opacity:0}}
   @media(prefers-reduced-motion:reduce){.ripple{display:none}.sheet-bg.open .sheet{animation:none}}
+
+  [hidden]{display:none!important}
+  .seg{display:flex;gap:8px;margin-bottom:14px}
+  .seg button{flex:1;height:40px;border-radius:20px;border:1px solid var(--outline);background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
+  .seg button.on{background:var(--amber-dim);border-color:transparent}
+  .seg button span{font-size:12.5px;color:var(--ink-dim)}
+  .seg button.on span{color:var(--amber)}
+  #subjectActions{margin-bottom:12px}
+  #subjectActions:empty{display:none}
+  .del-row{display:flex;justify-content:flex-end;gap:4px}
+  .del-btn.arch-btn:hover{color:var(--amber);background:var(--amber-dim)}
+  .arch-group{margin-bottom:20px}
+  .arch-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .arch-n{font-size:12.5px;color:var(--ink-dim);flex:1}
+  .arch-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;margin-bottom:8px}
+  .arch-name{font-weight:500;min-width:0}
+  .arch-name .sub{font-weight:400;margin-top:2px}
+  .arch-btns{display:flex;align-items:center;gap:4px;flex:none}
 </style>
 </head>
 <body data-page="Today">
@@ -577,10 +595,19 @@
   </div>
 
   <div class="page" id="pgChapters">
-    <section>
-      <div class="sec-title">সব চ্যাপ্টার <span class="count" id="chapCount">0</span></div>
+    <div class="seg">
+      <button type="button" id="segActive" class="on">চলমান <span id="chapCount">0</span></button>
+      <button type="button" id="segArchive">আর্কাইভ <span id="archCount">0</span></button>
+    </div>
+    <section id="viewActive">
       <div class="subject-tabs" id="subjectTabs"></div>
+      <div id="subjectActions"></div>
       <div id="chapterList"></div>
+    </section>
+    <section id="viewArchive" hidden>
+      <div id="archiveList"></div>
+      <div class="sec-title" style="margin-top:26px">হয়ে যাওয়া পরীক্ষা <span class="count" id="pastExamCount">0</span></div>
+      <div id="pastExamList"></div>
     </section>
   </div>
 
@@ -715,6 +742,88 @@ let loaded = false;
 let activeSubject = 'সব';
 
 
+
+let chapView = 'active';
+function setChapView(v){
+  chapView = v;
+  $('viewActive').hidden = v!=='active';
+  $('viewArchive').hidden = v!=='archive';
+  $('segActive').classList.toggle('on', v==='active');
+  $('segArchive').classList.toggle('on', v==='archive');
+}
+function setArchived(ids, flag){
+  const now = Date.now();
+  chapters.forEach(c=>{ if(ids.includes(c.id)){ c.archived = flag; c.updatedAt = now; } });
+  save(); render();
+  snack(flag ? 'আর্কাইভে সরানো হয়েছে' : 'ফিরিয়ে আনা হয়েছে');
+}
+function renderSubjectActions(){
+  const el = $('subjectActions');
+  el.innerHTML = '';
+  if(activeSubject==='সব') return;
+  const ids = activeChapters().filter(c=>(c.subject||'সাধারণ')===activeSubject).map(c=>c.id);
+  if(!ids.length) return;
+  const b = document.createElement('button');
+  b.className = 'btn btn-ghost';
+  b.textContent = '“'+activeSubject+'” সাবজেক্ট আর্কাইভ করুন';
+  b.addEventListener('click', ()=>{
+    if(confirm('“'+activeSubject+'”-এর সব '+toBn(ids.length)+'টি চ্যাপ্টার আর্কাইভে যাবে। রিভিউ শিডিউল থেকে সরে যাবে, তবে পরে ফিরিয়ে আনা যাবে। করবেন?')){
+      activeSubject = 'সব';
+      setArchived(ids, true);
+    }
+  });
+  el.appendChild(b);
+}
+function renderArchive(){
+  const arch = archivedChapters();
+  $('archCount').textContent = arch.length;
+  const el = $('archiveList');
+  el.innerHTML = '';
+  if(!arch.length){
+    el.innerHTML = '<div class="empty">আর্কাইভে কিছু নেই। কোনো চ্যাপ্টার খুলে “আর্কাইভ করুন” চাপলে এখানে আসবে।</div>';
+  }else{
+    const bySub = {};
+    arch.forEach(c=>{ const s = c.subject||'সাধারণ'; (bySub[s] = bySub[s]||[]).push(c); });
+    Object.keys(bySub).forEach(s=>{
+      const wrap = document.createElement('div');
+      wrap.className = 'arch-group';
+      wrap.innerHTML = `<div class="arch-head"><span class="subject-badge">${escapeHtml(s)}</span><span class="arch-n">${toBn(bySub[s].length)}টি চ্যাপ্টার</span><button class="mini-btn" data-restore-sub="${escapeHtml(s)}">সব ফিরিয়ে আনুন</button></div>`
+        + bySub[s].map(c=>{
+            const lf = lastFelt(c);
+            return `<div class="card arch-item"><div class="arch-name">${escapeHtml(c.name)}<div class="sub">${lf&&lf.rating?FACES[lf.rating-1]+' · ':''}পড়া শুরু: ${fmtBn(c.studyDate)}</div></div><div class="arch-btns"><button class="mini-btn" data-restore="${c.id}">ফিরিয়ে আনুন</button><button class="del-btn" data-del-arch="${c.id}">মুছুন</button></div></div>`;
+          }).join('');
+      el.appendChild(wrap);
+    });
+    el.querySelectorAll('[data-restore]').forEach(b=>b.addEventListener('click', ()=>setArchived([b.dataset.restore], false)));
+    el.querySelectorAll('[data-restore-sub]').forEach(b=>b.addEventListener('click', ()=>{
+      const s = b.dataset.restoreSub;
+      setArchived(arch.filter(c=>(c.subject||'সাধারণ')===s).map(c=>c.id), false);
+    }));
+    el.querySelectorAll('[data-del-arch]').forEach(b=>b.addEventListener('click', ()=>{
+      if(confirm('এই চ্যাপ্টারটা চিরতরে মুছে ফেলতে চান?')) deleteChapter(b.dataset.delArch);
+    }));
+  }
+  // finished exams
+  const t = todayStr();
+  const past = activeExams().filter(e=>daysBetween(t, e.date) < 0).sort((a,b)=>b.date.localeCompare(a.date));
+  $('pastExamCount').textContent = past.length;
+  const pl = $('pastExamList');
+  pl.innerHTML = '';
+  if(!past.length){
+    pl.innerHTML = '<div class="empty">এখনো কোনো পরীক্ষা শেষ হয়নি।</div>';
+    return;
+  }
+  past.forEach(e=>{
+    const d = document.createElement('div');
+    d.className = 'card arch-item';
+    d.innerHTML = `<div class="arch-name">${escapeHtml(e.name)}<div class="sub">${fmtBn(e.date)} · ${toBn(-daysBetween(t, e.date))} দিন আগে</div></div><button class="del-btn" data-del-exam="${e.id}">মুছুন</button>`;
+    pl.appendChild(d);
+  });
+  pl.querySelectorAll('[data-del-exam]').forEach(b=>b.addEventListener('click', ()=>{
+    if(confirm('এই পরীক্ষাটা মুছে ফেলতে চান?')) deleteExam(b.dataset.delExam);
+  }));
+}
+
 let snackTimer;
 function snack(msg){ const s=document.getElementById('snack'); s.textContent=msg; s.classList.add('show'); clearTimeout(snackTimer); snackTimer=setTimeout(()=>s.classList.remove('show'),2400); }
 document.addEventListener('pointerdown', e=>{
@@ -777,6 +886,8 @@ document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click', ()=
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', closeSheets));
 document.querySelectorAll('.sheet-bg').forEach(s=>s.addEventListener('click', e=>{ if(e.target===s) closeSheets(); }));
 $('fabAdd').addEventListener('click', ()=>{ addRating = 0; buildFaces($('addFaces'), 0, v=>{ addRating = v; }); openSheet('addSheet'); });
+$('segActive').addEventListener('click', ()=>setChapView('active'));
+$('segArchive').addEventListener('click', ()=>setChapView('archive'));
 $('openExamBtn').addEventListener('click', ()=>openSheet('examSheet'));
 $('rateSave').addEventListener('click', ()=>finishRate(false));
 $('rateSkip').addEventListener('click', ()=>finishRate(true));
@@ -801,7 +912,8 @@ function fmtBn(dateStr){
   return d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();
 }
 
-function activeChapters(){ return chapters.filter(c=>!c.deleted); }
+function activeChapters(){ return chapters.filter(c=>!c.deleted && !c.archived); }
+function archivedChapters(){ return chapters.filter(c=>!c.deleted && c.archived); }
 function activeExams(){ return exams.filter(e=>!e.deleted); }
 
 function recompute(){
@@ -935,12 +1047,12 @@ function daysBetween(fromStr, toStr){
 
 function renderExams(){
   const t = todayStr();
-  const exs = activeExams();
+  const exs = activeExams().filter(e=>daysBetween(t, e.date) >= 0);
   document.getElementById('examCount').textContent = exs.length;
   const scroll = document.getElementById('examScroll');
   scroll.innerHTML = '';
   if(exs.length===0){
-    scroll.innerHTML = '<div class="empty" style="min-width:100%;">এখনো কোনো পরীক্ষা যোগ করা হয়নি।</div>';
+    scroll.innerHTML = '<div class="empty" style="min-width:100%;">কোনো আসন্ন পরীক্ষা নেই।</div>';
     return;
   }
   [...exs].sort((a,b)=> a.date.localeCompare(b.date)).forEach(ex=>{
@@ -1240,13 +1352,18 @@ function render(){
         <div class="body">
           <div class="sub">পড়া শুরু: ${fmtBn(ch.studyDate)} &middot; ${toBn(doneCount)}/৩ রিভিউ শেষ</div>
           <div>${hs.length ? hs.map(x=>`<div class="hs"><div class="hs-top"><b>${x.label}</b><span>${FACES[x.rating-1]||''} ${x.date?fmtBn(x.date):''}</span></div>${x.note?`<div class="hs-note">${escapeHtml(x.note)}</div>`:''}</div>`).join('') : '<div class="empty-sm">এখনো কোনো মন্তব্য নেই। রিভিউ শেষে লিখে রাখুন।</div>'}</div>
-          <div class="del-row"><button class="del-btn" data-act="del" data-id="${ch.id}">মুছুন</button></div>
+          <div class="del-row"><button class="del-btn arch-btn" data-act="arch" data-id="${ch.id}">আর্কাইভ করুন</button><button class="del-btn" data-act="del" data-id="${ch.id}">মুছুন</button></div>
         </div>
       `;
       chapterList.appendChild(details);
     });
   }
 
+  renderSubjectActions();
+  renderArchive();
+  document.querySelectorAll('[data-act="arch"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> setArchived([btn.dataset.id], true));
+  });
   // bind buttons
   document.querySelectorAll('[data-act="done"]').forEach(btn=>{
     btn.addEventListener('click', ()=> openRate(btn.dataset.id, parseInt(btn.dataset.days), false));
