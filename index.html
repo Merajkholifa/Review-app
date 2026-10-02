@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -32,7 +32,7 @@
   body{
     margin:0;
     background:
-      radial-gradient(1200px 500px at 15% -10%, rgba(227,162,58,0.10), transparent),
+      radial-gradient(1200px 500px at 15% -10%, var(--glow), transparent),
       var(--bg);
     color:var(--ink);
     min-height:100vh;
@@ -112,9 +112,9 @@
     transition:transform .12s ease, opacity .12s ease;
   }
   .btn:active{transform:scale(0.96);}
-  .btn-amber{background:var(--amber);color:#1c1408;}
+  .btn-amber{background:var(--amber);color:var(--on-accent);}
   .btn-amber:hover{opacity:.9;}
-  .btn-red{background:var(--red);color:#2a0f0a;}
+  .btn-red{background:var(--red);color:var(--on-red);}
   .btn-red:hover{opacity:.9;}
   .btn-ghost{
     background:transparent;border:1px solid var(--line);color:var(--ink-dim);
@@ -136,7 +136,7 @@
   }
   .add-form input[type=text], .add-form input[type=date]{
     flex:1;min-width:150px;
-    background:#10131a;
+    background:var(--field);
     border:1px solid var(--line);
     color:var(--ink);
     padding:10px 12px;
@@ -179,7 +179,7 @@
   .subject-tab.active{
     background:var(--amber);
     border-color:var(--amber);
-    color:#1c1408;
+    color:var(--on-accent);
   }
 
   /* Chapter list */
@@ -208,22 +208,22 @@
     font-size:12px;font-weight:800;
     border:2px solid var(--line);
     color:var(--ink-dim);
-    background:#10131a;
+    background:var(--field);
   }
-  .dot.done{background:var(--green);border-color:var(--green);color:#0d2018;}
+  .dot.done{background:var(--green);border-color:var(--green);color:var(--on-green);}
   .dot.done_late{background:var(--red-dim);border-color:var(--red);color:var(--red);}
   .dot.due{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);
     animation: pulse 1.8s ease-in-out infinite;}
   .dot.missed{background:var(--red-dim);border-color:var(--red);color:var(--red);}
   @keyframes pulse{
-    0%,100%{box-shadow:0 0 0 0 rgba(227,162,58,0.35);}
-    50%{box-shadow:0 0 0 5px rgba(227,162,58,0);}
+    0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--amber) 35%,transparent);}
+    50%{box-shadow:0 0 0 5px transparent;}
   }
   .orbit .lbl{font-size:10.5px;color:var(--ink-dim);}
   .orbit .lbl.active{color:var(--amber);font-weight:700;}
 
   .progress-track{
-    height:6px;background:#10131a;border-radius:999px;overflow:hidden;
+    height:6px;background:var(--field);border-radius:999px;overflow:hidden;
     border:1px solid var(--line);
   }
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--green));}
@@ -259,7 +259,7 @@
   .exam-add-form{display:flex;gap:10px;flex-wrap:wrap;}
   .exam-add-form input{
     flex:1;min-width:150px;
-    background:#10131a;
+    background:var(--field);
     border:1px solid var(--line);
     color:var(--ink);
     padding:10px 12px;
@@ -320,7 +320,7 @@
     font-size:13.5px;
     font-weight:600;
   }
-  .tab-btn.active{background:var(--amber);color:#1c1408;border-color:var(--amber);}
+  .tab-btn.active{background:var(--amber);color:var(--on-accent);border-color:var(--amber);}
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
 
@@ -348,7 +348,7 @@
   }
   .cal-cell{
     aspect-ratio:1;
-    background:#10131a;
+    background:var(--field);
     border:1px solid var(--line);
     border-radius:9px;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -390,65 +390,202 @@
     border:1px solid var(--line);
     border-radius:8px;
   }
-  .sync-status.ok{color:#7fbf7f;border-color:#3a5a3a;}
-  .sync-status.err{color:var(--red);border-color:#5a3a3a;}
+  .sync-status.ok{color:var(--green);border-color:var(--green);}
+  .sync-status.err{color:var(--red);border-color:var(--red);}
+
+  /* ===== v2: calmer layout ===== */
+  body{padding:20px 16px 120px}
+  header.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:22px}
+  header.top h1{font-size:20px;margin:0}
+  .today-date{margin:0;font-size:12.5px;white-space:nowrap}
+  .page{display:none}.page.active{display:block}
+  section{margin-bottom:26px}
+  .sec-title .grow{flex:1}
+  .mini-btn{background:none;border:1px solid var(--line);color:var(--ink-dim);font:inherit;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;cursor:pointer}
+  .mini-btn:hover{color:var(--ink);border-color:var(--slate)}
+  .card{border:none}
+  .due-card{border-left:none;box-shadow:inset 3px 0 0 var(--amber)}
+  .missed-card{border-left:none;box-shadow:inset 3px 0 0 var(--red)}
+  .tagrow{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+  .tagrow .subject-badge{margin:0}
+  .weak{font-size:11px;font-weight:700;color:var(--red)}
+  .due-info .last{font-size:12.5px;color:var(--ink-dim);margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .exam-card{background:var(--bg-card);border:none;border-left:none;box-shadow:inset 3px 0 0 var(--red)}
+  .exam-card.today{box-shadow:inset 3px 0 0 var(--amber)}
+  .empty-sm{font-size:13px;color:var(--ink-dim)}
+  details.chapter{display:block;padding:0}
+  details.chapter>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  details.chapter>summary::-webkit-details-marker{display:none}
+  details.chapter .body{padding:0 16px 14px;display:flex;flex-direction:column;gap:12px}
+  details.chapter .sub{font-size:12.5px;color:var(--ink-dim)}
+  .ch-side{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .face-sm{font-size:18px}
+  .mini-dots{display:flex;gap:5px}
+  .mini-dots i{width:10px;height:10px;border-radius:50%;background:var(--field);border:1.5px solid var(--line)}
+  .mini-dots i.done{background:var(--green);border-color:var(--green)}
+  .mini-dots i.done_late{background:var(--red-dim);border-color:var(--red)}
+  .mini-dots i.due{background:var(--amber);border-color:var(--amber)}
+  .mini-dots i.missed{border-color:var(--red)}
+  .hs{padding:9px 0;border-top:1px solid var(--line)}
+  .hs-top{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-dim)}
+  .hs-note{font-size:13.5px;margin-top:4px;line-height:1.55}
+  .del-row{text-align:right}
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--nav-bg);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+  .nav-btn{flex:1;background:none;border:none;color:var(--ink-dim);font:inherit;font-size:12.5px;font-weight:600;padding:10px 4px;border-radius:10px;cursor:pointer}
+  .nav-btn.active{color:var(--amber);background:rgba(227,162,58,.1)}
+  .fab{position:fixed;right:18px;bottom:calc(78px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;border:none;background:var(--amber);color:var(--on-accent);font-size:28px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:pointer;z-index:20}
+  body[data-page="Calendar"] .fab, body[data-page="Settings"] .fab{display:none}
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:50}
+  .sheet-bg.open{display:flex}
+  .sheet{width:100%;max-width:760px;margin:0 auto;background:var(--bg-card);border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow-y:auto}
+  .sheet h2{font-size:17px;margin:0 0 14px}
+  .field{display:block;width:100%;background:var(--field);border:1px solid var(--line);color:var(--ink);padding:11px 12px;border-radius:10px;font:inherit;font-size:14px;margin-bottom:10px}
+  .field:focus{outline:none;border-color:var(--amber)}
+  textarea.field{resize:vertical;min-height:76px}
+  .sheet-label{font-size:12.5px;color:var(--ink-dim);margin:6px 0 8px}
+  .rate-last{font-size:13px;color:var(--ink-dim);margin:-6px 0 10px;line-height:1.5}
+  .sheet-actions{display:flex;gap:10px;margin-top:6px}
+  .sheet-actions .btn{flex:1;padding:12px}
+  .faces{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+  .face{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:8px 2px;color:var(--ink-dim);font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .face span{font-size:22px}
+  .face small{font-size:10px;text-align:center;line-height:1.2}
+  .face.on{border-color:var(--amber);background:var(--amber-dim);color:var(--ink)}
+  .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .theme{background:var(--field);border:2px solid var(--line);border-radius:12px;padding:12px 8px;color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .theme .sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--line)}
+  .theme.on{border-color:var(--amber)}
+
+  /* ===== Material 3 ===== */
+  :root{--on-surface:var(--ink);--outline:var(--slate);color-scheme:dark;
+    font-family:Roboto,"Noto Sans Bengali","Hind Siliguri",system-ui,-apple-system,sans-serif}
+  body{background:var(--bg);padding:0 16px 150px}
+  header.top{position:sticky;top:0;z-index:15;background:var(--bg);margin:0 -16px 8px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px}
+  header.top h1{font-size:22px;font-weight:500;letter-spacing:0}
+  .today-date{background:var(--bg-card);border:none;border-radius:8px;padding:6px 12px;font-size:12.5px;color:var(--ink)}
+  .sec-title{font-size:14px;font-weight:500;color:var(--ink-dim);letter-spacing:.01em;margin-bottom:10px}
+  .sec-title .count{background:var(--amber-dim);color:var(--amber);border-radius:8px;font-weight:500;padding:2px 8px}
+  .sec-title.red .count{background:var(--red-dim);color:var(--red)}
+  .card{background:var(--bg-card);border:none;border-radius:16px;padding:16px;box-shadow:none}
+  .due-card,.missed-card{box-shadow:none;border:none}
+  .due-card{background:color-mix(in srgb,var(--amber) 13%,var(--bg-card))}
+  .missed-card{background:color-mix(in srgb,var(--red) 13%,var(--bg-card))}
+  .due-info .chap{font-size:16px;font-weight:500;margin:4px 0 2px}
+  .empty{border:none;border-radius:16px;background:var(--bg-card);color:var(--ink-dim);padding:16px}
+  .btn,.mini-btn,.subject-tab,.face,.theme,details.chapter>summary{position:relative}
+  .btn,.fab,.mini-btn,.subject-tab,.face,.theme,details.chapter>summary{overflow:hidden;-webkit-tap-highlight-color:transparent}
+  .btn{height:40px;padding:0 22px;border-radius:20px;font-size:14px;font-weight:500;letter-spacing:.01em;display:inline-flex;align-items:center;justify-content:center}
+  .btn:active{transform:none}
+  .btn-ghost{border:1px solid var(--outline);color:var(--amber);background:transparent}
+  .btn-ghost:hover{background:color-mix(in srgb,var(--amber) 8%,transparent);color:var(--amber);border-color:var(--outline)}
+  .mini-btn{background:var(--amber-dim);color:var(--amber);border:none;border-radius:16px;padding:7px 14px;font-weight:500}
+  .mini-btn:hover{color:var(--amber);border:none}
+  .subject-badge{border-radius:8px;font-size:12px;font-weight:500;padding:3px 9px;letter-spacing:.01em}
+  .subject-tabs{gap:8px}
+  .subject-tab{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--outline);background:transparent;color:var(--ink);font-size:13.5px;font-weight:500}
+  .subject-tab:hover{border-color:var(--outline);color:var(--ink)}
+  .subject-tab.active{background:var(--amber-dim);border-color:transparent;color:var(--ink);padding-left:10px}
+  .subject-tab.active::before{content:'✓';margin-right:6px;color:var(--amber);font-weight:700}
+  .exam-card{border-radius:16px;box-shadow:none;background:var(--bg-card);min-width:160px}
+  .exam-card .exam-days{font-size:30px;font-weight:500}
+  .exam-card .del-btn{left:auto;right:8px;top:8px}
+  .exam-card{padding-top:18px}
+  .exam-card .exam-name{font-weight:500}
+  details.chapter{padding:0;overflow:hidden}
+  details.chapter>summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--ink-dim);border-bottom:2px solid var(--ink-dim);transform:rotate(45deg);margin:-3px 4px 0 2px;flex:none;transition:transform .2s}
+  details.chapter[open]>summary::after{transform:rotate(225deg);margin-top:3px}
+  .chapter-head .name,.name{font-weight:500}
+  .cal-cell{border:none;background:transparent;border-radius:50%;font-size:14px}
+  .cal-cell:not(.empty):hover{background:color-mix(in srgb,var(--ink) 8%,transparent);border:none}
+  .cal-cell.is-today{border:1px solid var(--amber);color:var(--amber)}
+  .cal-cell.is-selected{background:var(--amber);color:var(--on-accent);border:none;font-weight:600}
+  .cal-cell.is-selected .cal-dot{background:var(--on-accent)}
+  .cal-nav-btn{width:40px;height:40px;border:none;border-radius:50%;background:transparent;color:var(--ink);font-size:20px}
+  .cal-nav-btn:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink);border:none}
+  .cal-month-label{font-weight:500}
+  .day-num-box{border:none;border-radius:12px;background:var(--bg)}
+  .day-row.is-today .day-num-box{background:var(--amber-dim);border:none}
+  .sync-status{border-radius:12px}
+  .sync-toggle{gap:12px;font-size:14px;color:var(--ink)}
+  .sync-toggle input{appearance:none;-webkit-appearance:none;width:52px;height:32px;border-radius:16px;border:2px solid var(--outline);background:var(--field);position:relative;cursor:pointer;transition:background .2s,border-color .2s;flex:none;margin:0}
+  .sync-toggle input::after{content:'';position:absolute;top:6px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--outline);transition:all .2s}
+  .sync-toggle input:checked{background:var(--amber);border-color:var(--amber)}
+  .sync-toggle input:checked::after{left:22px;top:2px;width:24px;height:24px;background:var(--on-accent)}
+  .sync-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .sync-grid .tf{margin:0}
+  @media(max-width:480px){.sync-grid{grid-template-columns:1fr}}
+  .theme{border-radius:16px;border:2px solid transparent;background:var(--bg)}
+  .theme.on{border-color:var(--amber)}
+  /* text fields: outlined, floating label */
+  .tf{position:relative;margin-bottom:16px}
+  .tf input,.tf textarea{width:100%;display:block;background:transparent;border:1px solid var(--outline);border-radius:6px;color:var(--ink);padding:16px 14px;font:inherit;font-size:16px;outline:none;color-scheme:inherit}
+  .tf textarea{min-height:92px;resize:vertical}
+  .tf label{position:absolute;left:10px;top:15px;max-width:calc(100% - 20px);padding:0 4px;background:var(--bg-card);color:var(--ink-dim);font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;transition:top .15s,font-size .15s,color .15s}
+  .tf input:focus,.tf textarea:focus{border:2px solid var(--amber);padding:15px 13px}
+  .tf input:focus+label,.tf textarea:focus+label,.tf input:not(:placeholder-shown)+label,.tf textarea:not(:placeholder-shown)+label,.tf.date label{top:-9px;font-size:12px}
+  .tf input:focus+label,.tf textarea:focus+label{color:var(--amber)}
+  .tf .help{font-size:12px;color:var(--ink-dim);padding:4px 16px 0}
+  /* bottom sheets */
+  .sheet-bg{background:rgba(0,0,0,.45)}
+  .sheet{border-radius:28px 28px 0 0;background:var(--bg-card);padding:12px 24px calc(24px + env(safe-area-inset-bottom,0px))}
+  .sheet::before{content:'';display:block;width:32px;height:4px;border-radius:2px;background:var(--outline);margin:0 auto 18px;opacity:.7}
+  .sheet h2{font-size:22px;font-weight:400;margin:0 0 20px}
+  .sheet-bg.open .sheet{animation:sheetUp .25s cubic-bezier(.2,0,0,1)}
+  @keyframes sheetUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+  .sheet-actions{justify-content:flex-end;gap:8px;margin-top:8px}
+  .sheet-actions .btn{flex:0 0 auto;padding:0 24px}
+  .sheet-actions .btn-ghost{border:none}
+  .sheet-label{font-size:13px;color:var(--ink-dim);margin:2px 0 10px}
+  .rate-last{background:var(--bg);border-radius:12px;padding:10px 14px;margin:-8px 0 16px}
+  .rate-last:empty{display:none}
+  .face{border-radius:12px;border:1px solid var(--outline);background:transparent}
+  .face.on{background:var(--amber-dim);border-color:transparent;color:var(--ink)}
+  /* navigation bar + FAB */
+  .bottom-nav{background:var(--bg-card);border-top:none;backdrop-filter:none;padding:10px 8px calc(12px + env(safe-area-inset-bottom,0px))}
+  .nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border-radius:0;padding:0;color:var(--ink-dim);font-size:12px;font-weight:500}
+  .nav-btn.active{background:none;color:var(--ink)}
+  .nav-btn .pill{width:64px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+  .nav-btn.active .pill{background:var(--amber-dim);color:var(--amber)}
+  .fab{width:auto;height:56px;padding:0 20px 0 16px;border-radius:16px;display:flex;align-items:center;gap:10px;font:inherit;font-size:14px;font-weight:500;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));box-shadow:0 4px 12px rgba(0,0,0,.35)}
+  .snack{position:fixed;left:16px;right:16px;max-width:520px;margin:0 auto;bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:14px 16px;border-radius:8px;font-size:14px;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:60;pointer-events:none}
+  .snack.show{opacity:1;transform:none}
+  .ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);animation:rip .55s ease-out;pointer-events:none}
+  @keyframes rip{to{transform:scale(1);opacity:0}}
+  @media(prefers-reduced-motion:reduce){.ripple{display:none}.sheet-bg.open .sheet{animation:none}}
 </style>
 </head>
-<body>
+<body data-page="Today">
 <div class="wrap">
-
   <header class="top">
-    <div class="eyebrow">SPACED REPETITION</div>
     <h1>পুনরাবৃত্তি ট্র্যাকার</h1>
-    <p>একটা চ্যাপ্টার পড়ার পর ৩ দিন, ৭ দিন আর ১৫ দিন পর — এই তিনবার রিভিউ দিলে সেটা স্থায়ীভাবে মনে থাকে। এখানে চ্যাপ্টার যোগ করলে অ্যাপ নিজেই হিসেব করে কবে কোনটা রিভিউ দিতে হবে।</p>
     <div class="today-date" id="todayDateLabel"></div>
   </header>
 
-  <section>
-    <div class="sec-title">পরীক্ষা <span class="count" id="examCount">0</span></div>
-    <div id="examScroll" class="exam-scroll"></div>
-    <div class="card" style="margin-top:10px;">
-      <div class="exam-add-form">
-        <input type="text" id="examName" placeholder="পরীক্ষার নাম, যেমনঃ SAT / Physics Final">
-        <input type="date" id="examDate">
-        <button class="btn btn-red" id="addExamBtn">যোগ করুন</button>
-      </div>
-    </div>
-  </section>
-
-  <div class="tabs">
-    <button class="tab-btn active" id="appTabBtnHome" onclick="switchAppTab('home')">হোম</button>
-    <button class="tab-btn" id="appTabBtnSettings" onclick="switchAppTab('settings')">সেটিংস</button>
+  <div class="page active" id="pgToday">
+    <section>
+      <div class="sec-title">পরীক্ষা <span class="count" id="examCount">0</span><span class="grow"></span><button class="mini-btn" id="openExamBtn">+ যোগ করুন</button></div>
+      <div id="examScroll" class="exam-scroll"></div>
+    </section>
+    <section>
+      <div class="sec-title">আজকের রিভিউ <span class="count" id="dueCount">0</span></div>
+      <div id="dueList"></div>
+    </section>
+    <section id="missedSection">
+      <div class="sec-title red">মিস হয়ে যাওয়া <span class="count" id="missedCount">0</span></div>
+      <div id="missedList"></div>
+    </section>
   </div>
 
-  <div class="tab-panel active" id="appPanelHome">
+  <div class="page" id="pgChapters">
+    <section>
+      <div class="sec-title">সব চ্যাপ্টার <span class="count" id="chapCount">0</span></div>
+      <div class="subject-tabs" id="subjectTabs"></div>
+      <div id="chapterList"></div>
+    </section>
+  </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" id="tabBtnList" onclick="switchScheduleTab('list')">তালিকা</button>
-      <button class="tab-btn" id="tabBtnCal" onclick="switchScheduleTab('calendar')">ক্যালেন্ডার</button>
-    </div>
-
-    <div class="tab-panel active" id="panelList">
-      <section>
-        <div class="sec-title">আজকের রিভিউ <span class="count" id="dueCount">0</span></div>
-        <div id="dueList"></div>
-      </section>
-
-      <section id="missedSection">
-        <div class="sec-title red">মিস হয়ে যাওয়া রিভিউ <span class="count" id="missedCount">0</span></div>
-        <div id="missedList"></div>
-      </section>
-
-      <section>
-        <div class="sec-title">আগামী দিনের রিভিশন <span class="count" id="upcomingCount">0</span></div>
-        <div class="card" id="upcomingCard">
-          <div id="upcomingList"></div>
-        </div>
-      </section>
-    </div>
-
-    <div class="tab-panel" id="panelCalendar">
-      <section>
+  <div class="page" id="pgCalendar">
+    <section>
         <div class="sec-title">রিভিশন ক্যালেন্ডার</div>
         <div class="card">
           <div class="cal-header">
@@ -461,31 +598,17 @@
           <div class="cal-detail" id="calDetail"></div>
         </div>
       </section>
-    </div>
-
     <section>
-      <div class="sec-title">নতুন চ্যাপ্টার যোগ করুন</div>
-      <div class="card">
-        <div class="add-form">
-          <input type="text" id="chapSubject" list="subjectSuggestions" placeholder="সাবজেক্ট, যেমনঃ English" autocomplete="off">
-          <datalist id="subjectSuggestions"></datalist>
-          <input type="text" id="chapName" placeholder="চ্যাপ্টারের নাম, যেমনঃ Tense">
-          <input type="date" id="chapDate">
-          <button class="btn btn-amber" id="addBtn">যোগ করুন</button>
-        </div>
-      </div>
+      <div class="sec-title">আগামী দিনের রিভিশন <span class="count" id="upcomingCount">0</span></div>
+      <div class="card" id="upcomingCard"><div id="upcomingList"></div></div>
     </section>
-
-    <section>
-      <div class="sec-title">সব চ্যাপ্টার <span class="count" id="chapCount">0</span></div>
-      <div class="subject-tabs" id="subjectTabs"></div>
-      <div id="chapterList"></div>
-    </section>
-
   </div>
 
-  <div class="tab-panel" id="appPanelSettings">
-
+  <div class="page" id="pgSettings">
+    <section>
+      <div class="sec-title">অ্যাপের রঙ</div>
+      <div class="card"><div class="themes" id="themeList"></div></div>
+    </section>
     <section>
       <div class="sec-title">ব্যাকআপ</div>
       <div class="card">
@@ -501,11 +624,11 @@
     <section>
       <div class="sec-title">ডিভাইস সিঙ্ক (GitHub)</div>
       <div class="card">
-        <div class="add-form" style="grid-template-columns:1fr 1fr;">
-          <input type="text" id="syncOwner" placeholder="GitHub ইউজারনেম">
-          <input type="text" id="syncRepo" placeholder="রিপোজিটরির নাম">
-          <input type="password" id="syncToken" placeholder="Personal Access Token">
-          <input type="text" id="syncPath" placeholder="ফাইলের নাম (ডিফল্ট: revtrack-data.json)">
+        <div class="sync-grid">
+          <div class="tf"><input placeholder=" " type="text" id="syncOwner"><label for="syncOwner">GitHub ইউজারনেম</label></div>
+          <div class="tf"><input placeholder=" " type="text" id="syncRepo"><label for="syncRepo">রিপোজিটরির নাম</label></div>
+          <div class="tf"><input placeholder=" " type="password" id="syncToken"><label for="syncToken">Personal Access Token</label></div>
+          <div class="tf"><input placeholder=" " type="text" id="syncPath"><label for="syncPath">ফাইলের নাম (ঐচ্ছিক)</label></div>
         </div>
         <div class="backup-row" style="margin-top:10px;">
           <button class="btn btn-amber" id="syncSaveBtn">সেভ করুন</button>
@@ -524,32 +647,144 @@
     </section>
 
   </div>
-
 </div>
 
+<button class="fab" id="fabAdd"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>নতুন চ্যাপ্টার</span></button>
+<div class="snack" id="snack" role="status"></div>
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-p="Today"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg></span><span class="nl">আজ</span></button>
+  <button class="nav-btn" data-p="Chapters"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16"/></svg></span><span class="nl">চ্যাপ্টার</span></button>
+  <button class="nav-btn" data-p="Calendar"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span><span class="nl">ক্যালেন্ডার</span></button>
+  <button class="nav-btn" data-p="Settings"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg></span><span class="nl">সেটিংস</span></button>
+</nav>
+
+<div class="sheet-bg" id="addSheet"><div class="sheet">
+  <h2>নতুন চ্যাপ্টার</h2>
+  <div class="tf"><input placeholder=" " type="text" id="chapSubject" list="subjectSuggestions" autocomplete="off"><label for="chapSubject">সাবজেক্ট (যেমনঃ English)</label></div>
+  <datalist id="subjectSuggestions"></datalist>
+  <div class="tf"><input placeholder=" " type="text" id="chapName"><label for="chapName">চ্যাপ্টারের নাম (যেমনঃ Tense)</label></div>
+  <div class="tf date"><input placeholder=" " type="date" id="chapDate"><label for="chapDate">পড়ার তারিখ</label></div>
+  <div class="sheet-label">আজকের পড়াটা কেমন হলো? (ঐচ্ছিক)</div>
+  <div class="faces" id="addFaces"></div>
+  <div class="tf"><textarea placeholder=" " id="chapNote"></textarea><label for="chapNote">মন্তব্য (ঐচ্ছিক)</label><div class="help">কোথায় আটকালাম, পরের বার কী করব…</div></div>
+  <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="addBtn">যোগ করুন</button></div>
+</div></div>
+
+<div class="sheet-bg" id="examSheet"><div class="sheet">
+  <h2>নতুন পরীক্ষা</h2>
+  <div class="tf"><input placeholder=" " type="text" id="examName"><label for="examName">পরীক্ষার নাম (যেমনঃ Physics Final)</label></div>
+  <div class="tf date"><input placeholder=" " type="date" id="examDate"><label for="examDate">পরীক্ষার তারিখ</label></div>
+  <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-red" id="addExamBtn">যোগ করুন</button></div>
+</div></div>
+
+<div class="sheet-bg" id="rateSheet"><div class="sheet">
+  <h2 id="rateTitle"></h2>
+  <div class="rate-last" id="rateLast"></div>
+  <div class="sheet-label">কতটা বুঝলেন?</div>
+  <div class="faces" id="rateFaces"></div>
+  <div class="tf"><textarea placeholder=" " id="rateNote"></textarea><label for="rateNote">মন্তব্য (ঐচ্ছিক)</label><div class="help">কী ভুলে গিয়েছিলাম, পরের বার কী করব…</div></div>
+  <div class="sheet-actions"><button class="btn btn-ghost" id="rateSkip">এড়িয়ে যান</button><button class="btn btn-amber" id="rateSave">সম্পন্ন করুন</button></div>
+</div></div>
+
 <script>
+const THEMES = {
+  amber:{name:'অ্যাম্বার',sw:'#e3a23a',v:{'--bg':'#14171f','--bg-card':'#1c202b','--ink':'#eee9de','--ink-dim':'#9aa0ae','--line':'#2b3040','--amber':'#e3a23a','--amber-dim':'#6b5327','--slate':'#565f77','--field':'#10131a','--on-accent':'#1c1408','--nav-bg':'rgba(20,23,31,.95)','--glow':'rgba(227,162,58,0.10)'}},
+  teal:{name:'টিল',sw:'#3fb8af',v:{'--bg':'#101a1c','--bg-card':'#172428','--ink':'#e6efee','--ink-dim':'#8fa5a6','--line':'#243739','--amber':'#3fb8af','--amber-dim':'#1f4a47','--slate':'#4f6b6d','--field':'#0c1415','--on-accent':'#06201e','--nav-bg':'rgba(16,26,28,.95)','--glow':'rgba(63,184,175,0.10)'}},
+  blue:{name:'নীল',sw:'#6ea8fe',v:{'--bg':'#121721','--bg-card':'#1a2130','--ink':'#e8ecf4','--ink-dim':'#98a2b8','--line':'#283147','--amber':'#6ea8fe','--amber-dim':'#243a63','--slate':'#53607d','--field':'#0e121a','--on-accent':'#0a1830','--nav-bg':'rgba(18,23,33,.95)','--glow':'rgba(110,168,254,0.10)'}},
+  rose:{name:'গোলাপি',sw:'#e87aa0',v:{'--bg':'#1a1418','--bg-card':'#251c22','--ink':'#f1e8ec','--ink-dim':'#aa97a0','--line':'#3a2b33','--amber':'#e87aa0','--amber-dim':'#5a2a40','--slate':'#715a66','--field':'#140f12','--on-accent':'#2a0b17','--nav-bg':'rgba(26,20,24,.95)','--glow':'rgba(232,122,160,0.10)'}},
+  green:{name:'সবুজ',sw:'#7cc47a',v:{'--bg':'#121a14','--bg-card':'#19251c','--ink':'#e8f0e6','--ink-dim':'#93a597','--line':'#27382b','--amber':'#7cc47a','--amber-dim':'#2a4a2b','--slate':'#53705a','--field':'#0d140f','--on-accent':'#0a2010','--nav-bg':'rgba(18,26,20,.95)','--glow':'rgba(124,196,122,0.10)'}},
+  light:{name:'হালকা',sw:'#f3f5f8',v:{'--bg':'#f3f5f8','--bg-card':'#ffffff','--ink':'#1d2433','--ink-dim':'#5d6678','--line':'#dde2ea','--amber':'#b36b00','--amber-dim':'#fbe7c4','--slate':'#8a93a6','--field':'#eef1f5','--on-accent':'#ffffff','--nav-bg':'rgba(255,255,255,.95)','--glow':'rgba(179,107,0,0.07)','--green':'#2f8f5f','--green-dim':'#d6efe2','--red':'#c4472f','--red-dim':'#fbe0da','--on-red':'#ffffff','--on-green':'#ffffff'}}
+};
+const DARK_BASE = {'--green':'#4fae7d','--green-dim':'#234030','--red':'#d9705c','--red-dim':'#472823','--on-red':'#2a0f0a','--on-green':'#0d2018'};
+function applyTheme(key){
+  const t = THEMES[key] || THEMES.amber;
+  const vars = Object.assign({}, DARK_BASE, t.v);
+  const root = document.documentElement;
+  Object.keys(vars).forEach(k=>root.style.setProperty(k, vars[k]));
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', key==='light' ? '#f3f5f8' : vars['--amber']);
+  root.style.colorScheme = key==='light' ? 'light' : 'dark';
+  try{ localStorage.setItem('revtrack_theme', key); }catch(e){}
+  const list = document.getElementById('themeList');
+  if(list) list.querySelectorAll('.theme').forEach(b=>b.classList.toggle('on', b.dataset.k===key));
+}
+(function(){ let k='amber'; try{ k = localStorage.getItem('revtrack_theme')||'amber'; }catch(e){} applyTheme(k); })();
 let chapters = [];
 let exams = [];
 let loaded = false;
 let activeSubject = 'সব';
-function switchAppTab(tab){
-  document.getElementById('appPanelHome').classList.toggle('active', tab==='home');
-  document.getElementById('appPanelSettings').classList.toggle('active', tab==='settings');
-  document.getElementById('appTabBtnHome').classList.toggle('active', tab==='home');
-  document.getElementById('appTabBtnSettings').classList.toggle('active', tab==='settings');
+
+
+let snackTimer;
+function snack(msg){ const s=document.getElementById('snack'); s.textContent=msg; s.classList.add('show'); clearTimeout(snackTimer); snackTimer=setTimeout(()=>s.classList.remove('show'),2400); }
+document.addEventListener('pointerdown', e=>{
+  const t = e.target.closest('.btn,.fab,.mini-btn,.subject-tab,.face,.theme,details.chapter>summary');
+  if(!t || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = t.getBoundingClientRect(), d = Math.max(r.width,r.height)*2;
+  const s = document.createElement('span'); s.className='ripple';
+  s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+  t.appendChild(s); setTimeout(()=>s.remove(),600);
+});
+let addRating = 0, rateVal = 0, rateCtx = null;
+const FACES = ['😣','😕','🙂','😊','🤩'];
+const FACE_LBL = ['বুঝিনি','কম বুঝেছি','মোটামুটি','ভালো বুঝেছি','দারুণ'];
+function $(id){ return document.getElementById(id); }
+function go(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active', e.id==='pg'+p));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.p===p));
+  document.body.dataset.page = p;
+  if(p==='Calendar') renderCalendar();
+  window.scrollTo(0,0);
 }
+function openSheet(id){ $(id).classList.add('open'); }
+function closeSheets(){ document.querySelectorAll('.sheet-bg').forEach(s=>s.classList.remove('open')); }
+function buildFaces(el, cur, onPick){
+  el.innerHTML = FACES.map((f,i)=>`<button type="button" class="face${cur===i+1?' on':''}" data-v="${i+1}"><span>${f}</span><small>${FACE_LBL[i]}</small></button>`).join('');
+  el.querySelectorAll('.face').forEach(b=>b.addEventListener('click', ()=>{ const v=+b.dataset.v; onPick(v); buildFaces(el, v, onPick); }));
+}
+function sessionsOf(ch){
+  const s = [{label:'প্রথম পড়া', date:ch.studyDate, rating:ch.rating||0, note:ch.note||''}];
+  ch.reviews.forEach(r=>{
+    if(r.status==='done'||r.status==='done_late') s.push({label:dayLabel(r.days)+' রিভিউ', date:r.doneDate, rating:r.rating||0, note:r.note||''});
+  });
+  return s;
+}
+function lastFelt(ch){ const s = sessionsOf(ch).filter(x=>x.rating||x.note); return s.length ? s[s.length-1] : null; }
+function isWeak(ch){ const l = sessionsOf(ch).filter(x=>x.rating).pop(); return !!l && l.rating<=2; }
+function openRate(id, days, late){
+  const ch = chapters.find(c=>c.id===id); if(!ch) return;
+  rateCtx = {id, days, late}; rateVal = 0;
+  $('rateTitle').textContent = ch.name+' — '+dayLabel(days)+' রিভিউ';
+  const lf = lastFelt(ch);
+  $('rateLast').textContent = lf && lf.note ? 'গতবার: '+(FACES[lf.rating-1]||'')+' '+lf.note : '';
+  $('rateNote').value = '';
+  buildFaces($('rateFaces'), 0, v=>{ rateVal = v; });
+  openSheet('rateSheet');
+}
+function finishRate(skip){
+  const ch = chapters.find(c=>c.id===rateCtx.id);
+  const r = ch.reviews.find(rv=>rv.days===rateCtx.days);
+  r.status = rateCtx.late ? 'done_late' : 'done';
+  r.doneDate = todayStr();
+  if(!skip){
+    if(rateVal) r.rating = rateVal;
+    const n = $('rateNote').value.trim(); if(n) r.note = n;
+  }
+  ch.updatedAt = Date.now();
+  save(); closeSheets(); render(); snack('রিভিউ সম্পন্ন হয়েছে');
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click', ()=>go(b.dataset.p)));
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', closeSheets));
+document.querySelectorAll('.sheet-bg').forEach(s=>s.addEventListener('click', e=>{ if(e.target===s) closeSheets(); }));
+$('fabAdd').addEventListener('click', ()=>{ addRating = 0; buildFaces($('addFaces'), 0, v=>{ addRating = v; }); openSheet('addSheet'); });
+$('openExamBtn').addEventListener('click', ()=>openSheet('examSheet'));
+$('rateSave').addEventListener('click', ()=>finishRate(false));
+$('rateSkip').addEventListener('click', ()=>finishRate(true));
 const BN_MONTHS_FULL = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 const BN_WEEKDAYS_SHORT = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
 let calYear, calMonth; // 0-indexed month, initialized in init()
 let selectedCalDate = null;
 
-function switchScheduleTab(tab){
-  document.getElementById('panelList').classList.toggle('active', tab==='list');
-  document.getElementById('panelCalendar').classList.toggle('active', tab==='calendar');
-  document.getElementById('tabBtnList').classList.toggle('active', tab==='list');
-  document.getElementById('tabBtnCal').classList.toggle('active', tab==='calendar');
-  if(tab==='calendar') renderCalendar();
-}
 
 function todayStr(){
   const d = new Date();
@@ -654,6 +889,8 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
     subject,
     name,
     studyDate: date,
+    rating: addRating||null,
+    note: document.getElementById('chapNote').value.trim(),
     updatedAt: Date.now(),
     reviews: [3,7,15].map(days=>({
       days,
@@ -668,7 +905,9 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   subjectInput.value='';
   nameInput.value='';
   dateInput.value='';
-  render();
+  document.getElementById('chapNote').value='';
+  addRating=0; closeSheets();
+  render(); snack('চ্যাপ্টার যোগ হয়েছে');
 });
 
 document.getElementById('addExamBtn').addEventListener('click', ()=>{
@@ -680,7 +919,8 @@ document.getElementById('addExamBtn').addEventListener('click', ()=>{
   exams.push({ id: genId('e'), name, date, updatedAt: Date.now() });
   saveExams();
   nameInput.value=''; dateInput.value='';
-  render();
+  closeSheets();
+  render(); snack('পরীক্ষা যোগ হয়েছে');
 });
 
 function dayLabel(days){
@@ -905,11 +1145,13 @@ function render(){
     dueItems.forEach(({ch,r})=>{
       const div = document.createElement('div');
       div.className = 'card due-card';
+      const lf = lastFelt(ch);
       div.innerHTML = `
         <div class="due-info">
-          <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+          <div class="tagrow"><span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>${isWeak(ch)?'<span class="weak">আবার ঝালাই করুন</span>':''}</div>
           <div class="chap">${escapeHtml(ch.name)}</div>
-          <div class="meta">${dayLabel(r.days)} রিভিউ &middot; পড়া শুরু: ${fmtBn(ch.studyDate)}</div>
+          <div class="meta">${dayLabel(r.days)} রিভিউ</div>
+          ${lf?`<div class="last">${FACES[lf.rating-1]||''} ${escapeHtml(lf.note)}</div>`:''}
         </div>
         <button class="btn btn-amber" data-act="done" data-id="${ch.id}" data-days="${r.days}">পড়া হয়ে গেছে</button>
       `;
@@ -933,13 +1175,15 @@ function render(){
     missedItems.forEach(({ch,r})=>{
       const div = document.createElement('div');
       div.className = 'card due-card missed-card';
+      const lf = lastFelt(ch);
       div.innerHTML = `
         <div class="due-info">
-          <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
+          <div class="tagrow"><span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span></div>
           <div class="chap">${escapeHtml(ch.name)}</div>
-          <div class="meta">${dayLabel(r.days)} রিভিউ মিস হয়ে গেছে &middot; নির্ধারিত তারিখ ছিল ${fmtBn(r.dueDate)}</div>
+          <div class="meta">${dayLabel(r.days)} রিভিউ &middot; ছিল ${fmtBn(r.dueDate)}</div>
+          ${lf?`<div class="last">${FACES[lf.rating-1]||''} ${escapeHtml(lf.note)}</div>`:''}
         </div>
-        <button class="btn btn-red" data-act="late" data-id="${ch.id}" data-days="${r.days}">আলাদাভাবে সম্পন্ন করুন</button>
+        <button class="btn btn-red" data-act="late" data-id="${ch.id}" data-days="${r.days}">সম্পন্ন করুন</button>
       `;
       missedList.appendChild(div);
     });
@@ -981,44 +1225,34 @@ function render(){
     [...visibleChapters].sort((a,b)=> b.studyDate.localeCompare(a.studyDate)).forEach(ch=>{
       const doneCount = ch.reviews.filter(r=>r.status==='done'||r.status==='done_late').length;
       const pct = Math.round((doneCount/3)*100);
-      const div = document.createElement('div');
-      div.className = 'card chapter';
-      div.innerHTML = `
-        <div class="chapter-head">
+      const details = document.createElement('details');
+      details.className = 'card chapter';
+      const lf = lastFelt(ch);
+      const hs = sessionsOf(ch).filter(x=>x.rating||x.note);
+      details.innerHTML = `
+        <summary>
           <div>
             <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
             <div class="name">${escapeHtml(ch.name)}</div>
-            <div class="sub">পড়া শুরু: ${fmtBn(ch.studyDate)}</div>
           </div>
-          <button class="del-btn" data-act="del" data-id="${ch.id}">মুছুন</button>
+          <div class="ch-side">${lf&&lf.rating?`<span class="face-sm">${FACES[lf.rating-1]}</span>`:''}<span class="mini-dots">${ch.reviews.map(r=>`<i class="${r.status}"></i>`).join('')}</span></div>
+        </summary>
+        <div class="body">
+          <div class="sub">পড়া শুরু: ${fmtBn(ch.studyDate)} &middot; ${toBn(doneCount)}/৩ রিভিউ শেষ</div>
+          <div>${hs.length ? hs.map(x=>`<div class="hs"><div class="hs-top"><b>${x.label}</b><span>${FACES[x.rating-1]||''} ${x.date?fmtBn(x.date):''}</span></div>${x.note?`<div class="hs-note">${escapeHtml(x.note)}</div>`:''}</div>`).join('') : '<div class="empty-sm">এখনো কোনো মন্তব্য নেই। রিভিউ শেষে লিখে রাখুন।</div>'}</div>
+          <div class="del-row"><button class="del-btn" data-act="del" data-id="${ch.id}">মুছুন</button></div>
         </div>
-        <div class="orbit-row">
-          ${ch.reviews.map(r=>{
-            let dotClass = r.status;
-            let symbol = '';
-            if(r.status==='done') symbol='✓';
-            else if(r.status==='done_late') symbol='✓';
-            else if(r.status==='missed') symbol='!';
-            else if(r.status==='due') symbol='●';
-            else symbol = '';
-            return `<div class="orbit">
-              <div class="dot ${dotClass}">${symbol}</div>
-              <div class="lbl ${r.status==='due'?'active':''}">${dayLabel(r.days)}</div>
-            </div>`;
-          }).join('')}
-        </div>
-        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
       `;
-      chapterList.appendChild(div);
+      chapterList.appendChild(details);
     });
   }
 
   // bind buttons
   document.querySelectorAll('[data-act="done"]').forEach(btn=>{
-    btn.addEventListener('click', ()=> markDone(btn.dataset.id, parseInt(btn.dataset.days)));
+    btn.addEventListener('click', ()=> openRate(btn.dataset.id, parseInt(btn.dataset.days), false));
   });
   document.querySelectorAll('[data-act="late"]').forEach(btn=>{
-    btn.addEventListener('click', ()=> markDoneLate(btn.dataset.id, parseInt(btn.dataset.days)));
+    btn.addEventListener('click', ()=> openRate(btn.dataset.id, parseInt(btn.dataset.days), true));
   });
   document.querySelectorAll('[data-act="del"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1180,8 +1414,11 @@ async function syncNow(){
     await save(); await saveExams();
     render();
     await pushToGithub(false);
+    const time = new Date().toLocaleString('bn-BD');
     if(result.hadRemote){
-      setSyncStatus(`সিঙ্ক সম্পন্ন। ${new Date().toLocaleString('bn-BD')}`, 'ok');
+      setSyncStatus(`সিঙ্ক সম্পন্ন — GitHub-এর ডেটার সাথে মিলিয়ে নেওয়া হয়েছে। ${time}`, 'ok');
+    }else{
+      setSyncStatus(`সতর্কতা: এই ইউজারনেম/রিপো/ফাইলের নামে GitHub-এ কোনো আগের ডেটা পাওয়া যায়নি, তাই এখান থেকেই নতুন করে আপলোড করা হলো (${time})। অন্য ডিভাইসের ডেটা এখানে আসার কথা থাকলে, ইউজারনেম/রিপোর নাম/ফাইলের নাম দুই ডিভাইসে অক্ষরে অক্ষরে এক আছে কিনা মিলিয়ে দেখুন।`, 'err');
     }
   }catch(err){
     setSyncStatus(err.message || 'সিঙ্ক ব্যর্থ হয়েছে।', 'err');
@@ -1282,6 +1519,14 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
   e.target.value = '';
 });
 
+(function buildThemes(){
+  const list = document.getElementById('themeList');
+  list.innerHTML = Object.keys(THEMES).map(k=>`<button type="button" class="theme" data-k="${k}"><span class="sw" style="background:${THEMES[k].sw}"></span>${THEMES[k].name}</button>`).join('');
+  list.querySelectorAll('.theme').forEach(b=>b.addEventListener('click',()=>applyTheme(b.dataset.k)));
+  let k='amber'; try{ k = localStorage.getItem('revtrack_theme')||'amber'; }catch(e){}
+  applyTheme(k);
+})();
+
 (async function init(){
   document.getElementById('chapterList').innerHTML = '<div class="loading">লোড হচ্ছে…</div>';
   await load();
@@ -1298,7 +1543,7 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
       render();
       setSyncStatus(result.hadRemote
         ? 'সিঙ্ক সম্পন্ন। ডেটা আপডেট করা হয়েছে।'
-        : 'স্বয়ংক্রিয় সিঙ্ক চালু আছে।', 'ok');
+        : 'GitHub-এ এই ইউজারনেম/রিপো/ফাইলের নামে কোনো আগের ডেটা পাওয়া যায়নি (এটা কি প্রথমবার সিঙ্ক, নাকি অন্য ডিভাইসে দেওয়া তথ্যের সাথে হুবহু মিলছে না — চেক করুন)।', result.hadRemote ? 'ok' : 'err');
     }catch(err){
       setSyncStatus(err.message || 'সিঙ্ক ব্যর্থ হয়েছে।', 'err');
     }
