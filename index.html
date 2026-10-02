@@ -575,6 +575,9 @@
   .mini-dots i.skipped{background:transparent;border-color:var(--outline);position:relative}
   .mini-dots i.skipped::after{content:'';position:absolute;left:1px;right:1px;top:3.5px;height:1.5px;background:var(--outline)}
   .dot.skipped{background:var(--field);border-color:var(--outline);color:var(--ink-dim)}
+  .cal-acts{display:flex;gap:8px;width:100%;margin-top:2px}
+  .mini-btn.ghost{background:transparent;border:1px solid var(--outline);color:var(--ink)}
+  .ver{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:8px}
 </style>
 </head>
 <body data-page="Today">
@@ -637,6 +640,7 @@
   </div>
 
   <div class="page" id="pgSettings">
+    <div class="ver">সংস্করণ: ০২ অক্টো ২০২৬ · মিস রিভিউ → সম্পন্ন করুন / এড়িয়ে যান</div>
     <section>
       <div class="sec-title">অ্যাপের রঙ</div>
       <div class="card"><div class="themes" id="themeList"></div></div>
@@ -882,7 +886,7 @@ function skipReview(id, days){
   r.status = 'skipped';
   r.skippedDate = todayStr();
   ch.updatedAt = Date.now();
-  save(); render(); snack('রিভিউটা বাদ দেওয়া হয়েছে');
+  save(); render(); snack('রিভিউটা এড়িয়ে যাওয়া হয়েছে');
 }
 function finishRate(skip){
   const ch = chapters.find(c=>c.id===rateCtx.id);
@@ -1188,11 +1192,15 @@ function renderCalendarDetail(reviewMap){
       <div class="day-item">
         <span class="subject-badge">${escapeHtml(ch.subject||'সাধারণ')}</span>
         <span>${escapeHtml(ch.name)}</span>
-        <span class="rev-tag">${dayLabel(r.days)} রিভিউ${r.status==='missed' ? ' &middot; মিস হয়ে গেছে' : ''}</span>
+        <span class="rev-tag">${dayLabel(r.days)} রিভিউ${r.status==='missed' ? ' &middot; মিস হয়ে গেছে' : ''}</span>${r.status==='missed' ? `<span class="cal-acts"><button class="mini-btn" data-cal="late" data-id="${ch.id}" data-days="${r.days}">সম্পন্ন করুন</button><button class="mini-btn ghost" data-cal="skip" data-id="${ch.id}" data-days="${r.days}">এড়িয়ে যান</button></span>` : ''}
       </div>
     `).join('');
   }
   detail.innerHTML = `<div class="cal-detail-title">${label}</div>${itemsHtml}`;
+  detail.querySelectorAll('[data-cal="late"]').forEach(b=>b.addEventListener('click', ()=>openRate(b.dataset.id, parseInt(b.dataset.days), true)));
+  detail.querySelectorAll('[data-cal="skip"]').forEach(b=>b.addEventListener('click', ()=>{
+    if(confirm('এই দিনের রিভিউটা এড়িয়ে যেতে চান? এটা আর মিস হিসেবে দেখাবে না।')) skipReview(b.dataset.id, parseInt(b.dataset.days));
+  }));
 }
 
 function renderCalendar(){
@@ -1309,7 +1317,7 @@ function render(){
           <div class="meta">${dayLabel(r.days)} রিভিউ &middot; ছিল ${fmtBn(r.dueDate)}</div>
           ${lf?`<div class="last">${FACES[lf.rating-1]||''} ${escapeHtml(lf.note)}</div>`:''}
         </div>
-        <div class="act-col"><button class="btn btn-red" data-act="late" data-id="${ch.id}" data-days="${r.days}">এখন শেষ করুন</button><button class="btn btn-ghost" data-act="skip" data-id="${ch.id}" data-days="${r.days}">বাদ দিন</button></div>
+        <div class="act-col"><button class="btn btn-red" data-act="late" data-id="${ch.id}" data-days="${r.days}">সম্পন্ন করুন</button><button class="btn btn-ghost" data-act="skip" data-id="${ch.id}" data-days="${r.days}">এড়িয়ে যান</button></div>
       `;
       missedList.appendChild(div);
     });
@@ -1377,7 +1385,7 @@ function render(){
   renderArchive();
   document.querySelectorAll('[data-act="skip"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      if(confirm('এই দিনের রিভিউটা বাদ দিতে চান? এটা আর মিস হিসেবে দেখাবে না।')) skipReview(btn.dataset.id, parseInt(btn.dataset.days));
+      if(confirm('এই দিনের রিভিউটা এড়িয়ে যেতে চান? এটা আর মিস হিসেবে দেখাবে না।')) skipReview(btn.dataset.id, parseInt(btn.dataset.days));
     });
   });
   document.querySelectorAll('[data-act="arch"]').forEach(btn=>{
