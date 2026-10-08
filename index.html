@@ -578,6 +578,9 @@
   .cal-acts{display:flex;gap:8px;width:100%;margin-top:2px}
   .mini-btn.ghost{background:transparent;border:1px solid var(--outline);color:var(--ink)}
   .ver{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:8px}
+  .hs-st{font-size:13px;font-weight:500;margin-top:3px}
+  .hs-st.ok{color:var(--green)}.hs-st.late,.hs-st.due{color:var(--amber)}.hs-st.miss{color:var(--red)}.hs-st.skip,.hs-st.pend{color:var(--ink-dim)}
+  .hs-meta{font-size:12px;color:var(--ink-dim);margin-top:2px}
 </style>
 </head>
 <body data-page="Today">
@@ -640,7 +643,11 @@
   </div>
 
   <div class="page" id="pgSettings">
-    <div class="ver">সংস্করণ: ০২ অক্টো ২০২৬ · মিস রিভিউ → সম্পন্ন করুন / এড়িয়ে যান</div>
+    <section>
+      <div class="sec-title">ভাষা / Language</div>
+      <div class="card"><div class="themes" id="langList" style="grid-template-columns:1fr 1fr"><button type="button" class="theme" data-l="bn">বাংলা</button><button type="button" class="theme" data-l="en">English</button></div></div>
+    </section>
+    <div class="ver">সংস্করণ: ০২ অক্টো ২০২৬ — মিস রিভিউ → সম্পন্ন করুন / এড়িয়ে যান</div>
     <section>
       <div class="sec-title">অ্যাপের রঙ</div>
       <div class="card"><div class="themes" id="themeList"></div></div>
@@ -774,9 +781,9 @@ function renderSubjectActions(){
   if(!ids.length) return;
   const b = document.createElement('button');
   b.className = 'btn btn-ghost';
-  b.textContent = '“'+activeSubject+'” সাবজেক্ট আর্কাইভ করুন';
+  b.textContent = '“\u2060'+activeSubject+'\u2060” সাবজেক্ট আর্কাইভ করুন';
   b.addEventListener('click', ()=>{
-    if(confirm('“'+activeSubject+'”-এর সব '+toBn(ids.length)+'টি চ্যাপ্টার আর্কাইভে যাবে। রিভিউ শিডিউল থেকে সরে যাবে, তবে পরে ফিরিয়ে আনা যাবে। করবেন?')){
+    if(confirm('“\u2060'+activeSubject+'\u2060”-এর সব '+toBn(ids.length)+'টি চ্যাপ্টার আর্কাইভে যাবে। রিভিউ শিডিউল থেকে সরে যাবে, তবে পরে ফিরিয়ে আনা যাবে। করবেন?')){
       activeSubject = 'সব';
       setArchived(ids, true);
     }
@@ -796,7 +803,7 @@ function renderArchive(){
     Object.keys(bySub).forEach(s=>{
       const wrap = document.createElement('div');
       wrap.className = 'arch-group';
-      wrap.innerHTML = `<div class="arch-head"><span class="subject-badge">${escapeHtml(s)}</span><span class="arch-n">${toBn(bySub[s].length)}টি চ্যাপ্টার</span><button class="mini-btn" data-restore-sub="${escapeHtml(s)}">সব ফিরিয়ে আনুন</button></div>`
+      wrap.innerHTML = `<div class="arch-head"><span class="subject-badge">${escapeHtml(s)}</span><span class="arch-n">${toBn(bySub[s].length)}টি চ্যাপ্টার</span><button class="mini-btn" data-restore-sub="${escapeAttr(s)}">সব ফিরিয়ে আনুন</button></div>`
         + bySub[s].map(c=>{
             const lf = lastFelt(c);
             return `<div class="card arch-item"><div class="arch-name">${escapeHtml(c.name)}<div class="sub">${lf&&lf.rating?FACES[lf.rating-1]+' · ':''}পড়া শুরু: ${fmtBn(c.studyDate)}</div></div><div class="arch-btns"><button class="mini-btn" data-restore="${c.id}">ফিরিয়ে আনুন</button><button class="del-btn" data-del-arch="${c.id}">মুছুন</button></div></div>`;
@@ -831,6 +838,23 @@ function renderArchive(){
   pl.querySelectorAll('[data-del-exam]').forEach(b=>b.addEventListener('click', ()=>{
     if(confirm('এই পরীক্ষাটা মুছে ফেলতে চান?')) deleteExam(b.dataset.delExam);
   }));
+}
+
+
+function revHistory(ch){
+  const f=x=>FACES[x-1]||'';
+  let out=`<div class="hs"><div class="hs-top"><b>প্রথম পড়া</b><span>${f(ch.rating)}</span></div><div class="hs-meta">পড়া হয়েছে: ${fmtBn(ch.studyDate)}</div>${ch.note?`<div class="hs-note">${escapeHtml(ch.note)}</div>`:''}</div>`;
+  ch.reviews.forEach(r=>{
+    let st,cls,meta=['নির্ধারিত: '+fmtBn(r.dueDate)];
+    if(r.status==='done'){st='সময়মতো করা হয়েছে';cls='ok';if(r.doneDate)meta.push('করা হয়েছে: '+fmtBn(r.doneDate));}
+    else if(r.status==='done_late'){st='মিস হওয়ার পর আলাদা করে করা হয়েছে';cls='late';if(r.doneDate)meta.push('করা হয়েছে: '+fmtBn(r.doneDate));}
+    else if(r.status==='skipped'){st='এড়িয়ে যাওয়া হয়েছে';cls='skip';if(r.skippedDate)meta.push('এড়ানো হয়েছে: '+fmtBn(r.skippedDate));}
+    else if(r.status==='missed'){st='মিস হয়েছে, এখনো করা হয়নি';cls='miss';}
+    else if(r.status==='due'){st='আজ করতে হবে';cls='due';}
+    else{st='এখনো সময় হয়নি';cls='pend';}
+    out+=`<div class="hs"><div class="hs-top"><b>${dayLabel(r.days)} রিভিউ</b><span>${f(r.rating)}</span></div><div class="hs-st ${cls}">${st}</div><div class="hs-meta">${meta.join(' · ')}</div>${r.note?`<div class="hs-note">${escapeHtml(r.note)}</div>`:''}</div>`;
+  });
+  return out;
 }
 
 let snackTimer;
@@ -873,9 +897,9 @@ function isWeak(ch){ const l = sessionsOf(ch).filter(x=>x.rating).pop(); return 
 function openRate(id, days, late){
   const ch = chapters.find(c=>c.id===id); if(!ch) return;
   rateCtx = {id, days, late}; rateVal = 0;
-  $('rateTitle').textContent = ch.name+' — '+dayLabel(days)+' রিভিউ';
+  $('rateTitle').textContent = '\u2060'+ch.name+'\u2060 — '+dayLabel(days)+' রিভিউ';
   const lf = lastFelt(ch);
-  $('rateLast').textContent = lf && lf.note ? 'গতবার: '+(FACES[lf.rating-1]||'')+' '+lf.note : '';
+  $('rateLast').textContent = lf && lf.note ? 'গতবার: '+(FACES[lf.rating-1]||'')+' \u2060'+lf.note+'\u2060' : '';
   $('rateNote').value = '';
   buildFaces($('rateFaces'), 0, v=>{ rateVal = v; });
   openSheet('rateSheet');
@@ -1330,7 +1354,7 @@ function render(){
   const subjects = Array.from(new Set(allActiveChapters.map(c=>c.subject||'সাধারণ')));
   if(!subjects.includes(activeSubject) && activeSubject!=='সব') activeSubject = 'সব';
   const subjectSuggestionsEl = document.getElementById('subjectSuggestions');
-  subjectSuggestionsEl.innerHTML = subjects.map(s=>`<option value="${escapeHtml(s)}"></option>`).join('');
+  subjectSuggestionsEl.innerHTML = subjects.map(s=>`<option value="${escapeAttr(s)}"></option>`).join('');
   subjectTabsEl.innerHTML = '';
   if(subjects.length>0){
     const allTab = document.createElement('div');
@@ -1341,7 +1365,7 @@ function render(){
     subjects.forEach(s=>{
       const tab = document.createElement('div');
       tab.className = 'subject-tab' + (activeSubject===s ? ' active' : '');
-      tab.textContent = s;
+      tab.textContent = '\u2060'+s+'\u2060';
       tab.addEventListener('click', ()=>{ activeSubject=s; render(); });
       subjectTabsEl.appendChild(tab);
     });
@@ -1373,7 +1397,7 @@ function render(){
         </summary>
         <div class="body">
           <div class="sub">পড়া শুরু: ${fmtBn(ch.studyDate)} &middot; ${toBn(doneCount)}/৩ রিভিউ শেষ${ch.reviews.some(r=>r.status==='skipped') ? ' · '+toBn(ch.reviews.filter(r=>r.status==='skipped').length)+'টি বাদ' : ''}</div>
-          <div>${hs.length ? hs.map(x=>`<div class="hs"><div class="hs-top"><b>${x.label}</b><span>${FACES[x.rating-1]||''} ${x.date?fmtBn(x.date):''}</span></div>${x.skipped?`<div class="hs-note" style="color:var(--ink-dim)">বাদ দেওয়া হয়েছে</div>`:''}${x.note?`<div class="hs-note">${escapeHtml(x.note)}</div>`:''}</div>`).join('') : '<div class="empty-sm">এখনো কোনো মন্তব্য নেই। রিভিউ শেষে লিখে রাখুন।</div>'}</div>
+          <div>${revHistory(ch)}</div>
           <div class="del-row"><button class="del-btn arch-btn" data-act="arch" data-id="${ch.id}">আর্কাইভ করুন</button><button class="del-btn" data-act="del" data-id="${ch.id}">মুছুন</button></div>
         </div>
       `;
@@ -1405,7 +1429,8 @@ function render(){
   });
 }
 
-function escapeHtml(s){
+function escapeHtml(s){ return '\u2060'+escapeAttr(s)+'\u2060'; }
+function escapeAttr(s){
   return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
@@ -1693,6 +1718,105 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
     }
   }
 })();
+
+
+/* ---------- language (Bengali source text, English overlay) ---------- */
+let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
+const D = {
+'পুনরাবৃত্তি ট্র্যাকার':'Revision Tracker','আজ':'Today','চ্যাপ্টার':'Chapters','ক্যালেন্ডার':'Calendar','সেটিংস':'Settings','ভাষা / Language':'Language',
+'পরীক্ষা':'Exams','+ যোগ করুন':'+ Add','যোগ করুন':'Add','বাতিল':'Cancel','নতুন চ্যাপ্টার':'New chapter','নতুন পরীক্ষা':'New exam',
+'আজকের রিভিউ':"Today's reviews",'মিস হয়ে যাওয়া':'Missed','আগামী দিনের রিভিশন':'Upcoming reviews','রিভিশন ক্যালেন্ডার':'Review calendar',
+'সাবজেক্ট (যেমনঃ English)':'Subject (e.g. English)','চ্যাপ্টারের নাম (যেমনঃ Tense)':'Chapter name (e.g. Tense)','পড়ার তারিখ':'Study date',
+'আজকের পড়াটা কেমন হলো? (ঐচ্ছিক)':"How did today's study go? (optional)",'মন্তব্য (ঐচ্ছিক)':'Comment (optional)',
+'কোথায় আটকালাম, পরের বার কী করব…':'Where I got stuck, what to do next time…','কী ভুলে গিয়েছিলাম, পরের বার কী করব…':'What I forgot, what to do next time…',
+'পরীক্ষার নাম (যেমনঃ Physics Final)':'Exam name (e.g. Physics Final)','পরীক্ষার তারিখ':'Exam date','কতটা বুঝলেন?':'How well did you understand?',
+'রেটিং ছাড়া সম্পন্ন':'Done without rating','সম্পন্ন করুন':'Mark done','এড়িয়ে যান':'Skip','পড়া হয়ে গেছে':'Done',
+'বুঝিনি':'Lost','কম বুঝেছি':'Weak','মোটামুটি':'So-so','ভালো বুঝেছি':'Good','দারুণ':'Great',
+'চলমান':'Active','আর্কাইভ':'Archive','হয়ে যাওয়া পরীক্ষা':'Past exams','আর্কাইভ করুন':'Archive','মুছুন':'Delete','ফিরিয়ে আনুন':'Restore','সব ফিরিয়ে আনুন':'Restore all','সব':'All',
+'অ্যাপের রঙ':'App colour','অ্যাম্বার':'Amber','টিল':'Teal','নীল':'Blue','গোলাপি':'Rose','সবুজ':'Green','হালকা':'Light',
+'ব্যাকআপ':'Backup','এক্সপোর্ট করুন (ডাউনলোড)':'Export (download)','ইমপোর্ট করুন':'Import','ডিভাইস সিঙ্ক (GitHub)':'Device sync (GitHub)',
+'GitHub ইউজারনেম':'GitHub username','রিপোজিটরির নাম':'Repository name','ফাইলের নাম (ঐচ্ছিক)':'File name (optional)','সেভ করুন':'Save','এখনই সিঙ্ক করুন':'Sync now','স্বয়ংক্রিয় সিঙ্ক চালু':'Auto-sync on',
+'প্রাইভেট GitHub রিপো':'private GitHub repo',
+'সিঙ্ক এখনো সেটআপ করা হয়নি।':'Sync is not set up yet.','সিঙ্ক হচ্ছে…':'Syncing…','সিঙ্ক ব্যর্থ হয়েছে।':'Sync failed.','স্বয়ংক্রিয় সিঙ্ক চালু আছে।':'Auto-sync is on.',
+'আগে ইউজারনেম, রিপো আর টোকেন দিয়ে সেভ করুন।':'Save your username, repo and token first.','ইউজারনেম, রিপো আর টোকেন — তিনটাই দিতে হবে।':'Username, repo and token are all required.',
+'সেভ হয়েছে। এখন "এখনই সিঙ্ক করুন" চাপুন।':'Saved. Now tap "Sync now".','সিঙ্ক সম্পন্ন। ডেটা আপডেট করা হয়েছে।':'Sync complete. Data updated.','লোড হচ্ছে…':'Loading…',
+'ফাইলটা সঠিক ফরম্যাটে নেই।':'The file is not in the right format.','ফাইল পড়তে সমস্যা হয়েছে, এটা সঠিক ব্যাকআপ ফাইল কিনা যাচাই করুন।':'Could not read the file. Check that it is a valid backup.',
+'কোনো আসন্ন পরীক্ষা নেই।':'No upcoming exams.','আজকে পড়ার জন্য কোনো রিভিউ নেই।':'No reviews due today.','কোনো রিভিউ মিস হয়নি। চমৎকার!':'No missed reviews. Great!',
+'আগামীতে কোনো রিভিশন বাকি নেই।':'No upcoming reviews.','এই দিনে কোনো রিভিশন নেই।':'No reviews on this day.','এখনো কোনো চ্যাপ্টার যোগ করা হয়নি। উপরে ফর্ম থেকে একটা যোগ করুন।':'No chapters yet. Tap + to add one.',
+'এই সাবজেক্টে কোনো চ্যাপ্টার নেই।':'No chapters in this subject.','আর্কাইভে কিছু নেই। কোনো চ্যাপ্টার খুলে “আর্কাইভ করুন” চাপলে এখানে আসবে।':'The archive is empty. Open a chapter and tap “Archive” to move it here.',
+'এখনো কোনো পরীক্ষা শেষ হয়নি।':'No exams have finished yet.','আবার ঝালাই করুন':'Revise again','আজই!':'Today!','হয়ে গেছে':'Done','বাকি':'in','দিন':'days','আগামীকাল':'Tomorrow','মিস হয়ে গেছে':'missed',
+'আর্কাইভে সরানো হয়েছে':'Moved to archive','ফিরিয়ে আনা হয়েছে':'Restored','রিভিউটা এড়িয়ে যাওয়া হয়েছে':'Review skipped','রিভিউ সম্পন্ন হয়েছে':'Review done','চ্যাপ্টার যোগ হয়েছে':'Chapter added','পরীক্ষা যোগ হয়েছে':'Exam added',
+'এই চ্যাপ্টারটা চিরতরে মুছে ফেলতে চান?':'Delete this chapter permanently?','এই চ্যাপ্টারটা মুছে ফেলতে চান?':'Delete this chapter?','এই পরীক্ষাটা মুছে ফেলতে চান?':'Delete this exam?',
+'এই দিনের রিভিউটা এড়িয়ে যেতে চান? এটা আর মিস হিসেবে দেখাবে না।':'Skip this day\'s review? It will no longer show as missed.',
+'প্রথম পড়া':'First study','সময়মতো করা হয়েছে':'Done on time','মিস হওয়ার পর আলাদা করে করা হয়েছে':'Done late (after missing it)','এড়িয়ে যাওয়া হয়েছে':'Skipped','মিস হয়েছে, এখনো করা হয়নি':'Missed — not done yet','আজ করতে হবে':'Due today','এখনো সময় হয়নি':'Not due yet',
+'রবিবার':'Sunday','সোমবার':'Monday','মঙ্গলবার':'Tuesday','বুধবার':'Wednesday','বৃহস্পতিবার':'Thursday','শুক্রবার':'Friday','শনিবার':'Saturday','রবি':'Sun','সোম':'Mon','মঙ্গল':'Tue','বুধ':'Wed','বৃহ':'Thu','শুক্র':'Fri','শনি':'Sat'
+};
+const R = [
+[/^(\d+) দিন পর রিভিউ$/,n=>'Day '+n+' review'],[/^(\d+) দিন পরে$/,n=>'in '+n+' days'],[/^(\d+) দিন আগে$/,n=>n+' days ago'],[/^(\d+) দিন পর$/,n=>'Day '+n],
+[/^(\d+)টি চ্যাপ্টার$/,n=>n+(n==1?' chapter':' chapters')],[/^(\d+)\/3 রিভিউ শেষ$/,n=>n+'/3 reviews done'],[/^(\d+)টি বাদ$/,n=>n+' skipped'],
+[/^পড়া শুরু: (.+)$/,d=>'Started: '+d],[/^ছিল (.+)$/,d=>'was due '+d],[/^আজ: (.+)$/,d=>'Today: '+d],[/^(.+) \(আজ\)$/,d=>d+' (today)'],
+[/^নির্ধারিত: (.+)$/,d=>'Due: '+d],[/^করা হয়েছে: (.+)$/,d=>'Done: '+d],[/^এড়ানো হয়েছে: (.+)$/,d=>'Skipped: '+d],[/^পড়া হয়েছে: (.+)$/,d=>'Studied: '+d],
+[/^— (\d+) দিন পর রিভিউ$/,n=>'— Day '+n+' review'],[/^গতবার:(.*)$/,x=>'Last time:'+x],
+[/^” সাবজেক্ট আর্কাইভ করুন$/,()=>'” — archive subject'],
+[/^”-এর সব (\d+)টি চ্যাপ্টার আর্কাইভে যাবে/,n=>'” — all '+n+' chapters will go to the archive and leave the review schedule. You can restore them later. Continue?'],
+[/^সর্বশেষ সিঙ্ক: (.+)$/,t=>'Last sync: '+t],[/^সিঙ্ক সম্পন্ন — GitHub-এর ডেটার সাথে মিলিয়ে নেওয়া হয়েছে। (.+)$/,t=>'Sync complete — matched with the data on GitHub. '+t],
+[/^সতর্কতা: এই ইউজারনেম.*?\((.+?)\)/,t=>'Warning: no earlier data was found on GitHub for this username/repo/file name, so data was uploaded from here ('+t+'). If you expected data from another device, check that the username, repo name and file name are exactly the same on both devices.'],
+[/^GitHub-এ এই ইউজারনেম/,()=>'No earlier data found on GitHub for this username/repo/file name (is this the first sync, or does it not exactly match the other device?).'],
+[/^GitHub থেকে ডেটা আনতে সমস্যা \(স্ট্যাটাস (\d+)\)/,n=>'Could not fetch data from GitHub (status '+n+'). Check the username, repo and token.'],[/^GitHub-এ ডেটা সেভ করতে সমস্যা \(স্ট্যাটাস (\d+)\)/,n=>'Could not save data to GitHub (status '+n+').'],
+[/^ইমপোর্ট সম্পন্ন হয়েছে।\s*নতুন যোগ হয়েছে: (\d+)টি\s*বর্তমানে মোট: (\d+)টি চ্যাপ্টার, (\d+)টি পরীক্ষা$/,(a,b,c)=>'Import complete.\nNew: '+a+'\nTotal now: '+b+' chapters, '+c+' exams'],
+[/^এক্সপোর্ট করলে/,()=>'Export saves all your chapters and exams to one downloadable file. Importing merges that file into your current data — nothing is deleted and the same chapter/exam is never added twice.'],
+[/^এই ফিচার আপনার/,()=>'This feature uses your own'],[/^-কে স্টোরেজ/,()=>'as storage, so the same data shows on several devices. To create a token: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → create one and, for only that repo, give it'],
+[/^পারমিশন দিন/,()=>'permission. The token is stored only in this browser — do not share it.'],[/^এখন ডিলিট করাও/,()=>'Deletions sync too — deleting a chapter/exam on one device removes it on the others at the next sync.'],
+[/^সংস্করণ/,()=>'Version: 02 Oct 2026 — missed review → Mark done / Skip']
+];
+const MF=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const MS=['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্ট','অক্টো','নভে','ডিসে'];
+const MEN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function dts(p){
+  return p.replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d))
+   .replace(new RegExp('(\\d+ )?('+MF.join('|')+')( \\d{4})?','g'),(m,a,mo,y)=>(a||y)?(a||'')+MEN[MF.indexOf(mo)]+(y||''):m)
+   .replace(new RegExp('(\\d+) ('+MS.join('|')+')','g'),(m,d,mo)=>d+' '+MEN[MS.indexOf(mo)].slice(0,3));
+}
+function tr(src){
+  return src.split(/(\u2060[^\u2060]*\u2060)/).map((p,i)=>{
+    if(i%2){ const u=p.slice(1,-1); return u==='সাধারণ' ? 'General' : u; }
+    return dts(p).split(' · ').map(seg=>{
+      const l=seg.match(/^\s*/)[0], t=seg.match(/\s*$/)[0], c=seg.trim().replace(/\s+/g,' ');
+      if(!c) return seg;
+      let o=D[c];
+      if(o===undefined){ for(const [re,f] of R){ const m=c.match(re); if(m){ o=f(...m.slice(1)); break; } } }
+      return l+(o===undefined?c:o)+t;
+    }).join(' · ');
+  }).join('');
+}
+let langObs, langPending = false;
+function applyLang(){
+  langObs.disconnect();
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let n;
+  while(n = w.nextNode()){
+    if(/^(SCRIPT|STYLE)$/.test(n.parentNode.nodeName)) continue;
+    const src = (n.__t!==undefined && n.data===n.__t) ? n.__bn : n.data;
+    n.__bn = src;
+    const out = lang==='en' ? tr(src) : src.replace(/\u2060/g,'');
+    n.__t = out;
+    if(n.data!==out) n.data = out;
+  }
+  document.documentElement.lang = lang;
+  document.title = lang==='en' ? 'Revision Tracker' : 'পুনরাবৃত্তি ট্র্যাকার';
+  document.querySelectorAll('#langList .theme').forEach(b=>b.classList.toggle('on', b.dataset.l===lang));
+  langObs.observe(document.body,{childList:true,subtree:true,characterData:true});
+}
+langObs = new MutationObserver(()=>{ if(langPending) return; langPending = true; requestAnimationFrame(()=>{ langPending = false; applyLang(); }); });
+const _cf = window.confirm.bind(window), _al = window.alert.bind(window);
+window.confirm = m => _cf(lang==='en' ? tr(m) : m.replace(/\u2060/g,''));
+window.alert = m => _al(lang==='en' ? tr(m) : m.replace(/\u2060/g,''));
+document.querySelectorAll('#langList .theme').forEach(b=>b.addEventListener('click', ()=>{
+  lang = b.dataset.l;
+  try{ localStorage.setItem('revtrack_lang', lang); }catch(e){}
+  applyLang();
+}));
+applyLang();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
