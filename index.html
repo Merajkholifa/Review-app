@@ -596,6 +596,16 @@
   .tf select{width:100%;padding:16px 14px;background:var(--bg-card);color:var(--ink);border:1px solid var(--outline);border-radius:6px;font:inherit;font-size:16px}
   .time-card{display:flex;gap:12px}.time-card>div{flex:1}.time-card small{display:block;color:var(--ink-dim);font-size:12px;margin-bottom:4px}.time-card b{font-size:20px;font-weight:500}
   .tm-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:14px}.tm-row b{font-weight:500;color:var(--amber)}.tm-sum{border-top:1px solid var(--line);margin-top:4px;padding-top:10px}
+  .cal-cell{position:relative}
+  .cal-dots{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;gap:3px}
+  .cal-dots i,.cal-legend i{display:inline-block;width:6px;height:6px;border-radius:50%}
+  i.rv{background:var(--amber)}i.td{background:var(--green)}i.rt{background:#7aa2f7}
+  .cal-cell.is-selected .cal-dots i{background:var(--on-accent)}
+  .cal-legend{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--ink-dim);margin:10px 0 0}
+  .cal-legend i{margin-right:5px}
+  .cal-sub{font-size:12.5px;font-weight:500;color:var(--ink-dim);margin:14px 0 6px}
+  .chk-s{width:18px;height:18px;border-radius:5px;border:2px solid var(--outline);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+  .chk-s.on{background:var(--amber);border-color:var(--amber);color:var(--on-accent)}
 </style>
 </head>
 <body data-page="Today">
@@ -678,7 +688,8 @@
           </div>
           <div class="cal-weekdays" id="calWeekdays"></div>
           <div class="cal-grid" id="calGrid"></div>
-          <div class="cal-detail" id="calDetail"></div>
+          <div class="cal-legend"><i class="rv"></i>রিভিউ <i class="td"></i>টু-ডু <i class="rt"></i>রুটিন</div>
+    <div class="cal-detail" id="calDetail"></div>
         </div>
       </section>
     <section>
@@ -1281,6 +1292,11 @@ function buildReviewMap(){
   return map;
 }
 
+function extrasOn(ds){
+  const dow = new Date(ds+'T00:00:00').getDay();
+  return { todos: act(todos).filter(t=>t.due===ds),
+           routines: act(routines).filter(r=> r.date ? r.date===ds : r.day===dow).sort((a,b)=>mins(a.time)-mins(b.time)) };
+}
 function renderCalendarDetail(reviewMap){
   const detail = document.getElementById('calDetail');
   const t = todayStr();
@@ -1288,9 +1304,13 @@ function renderCalendarDetail(reviewMap){
   let label = toBn(d.getDate())+" "+BN_MONTHS_FULL[d.getMonth()];
   if(selectedCalDate===t) label += ' (আজ)';
   const entry = reviewMap[selectedCalDate];
+  const ex = extrasOn(selectedCalDate);
+  let extraHtml = '';
+  if(ex.todos.length) extraHtml += '<div class="cal-sub">টু-ডু</div>' + ex.todos.map(t=>`<div class="day-item"><span class="chk-s${t.done?' on':''}">${t.done?'✓':''}</span><span${t.done?' style="text-decoration:line-through;color:var(--ink-dim)"':''}>${escapeHtml(t.text)}</span>${t.subject?`<span class="subject-badge">${escapeHtml(t.subject)}</span>`:''}</div>`).join('');
+  if(ex.routines.length) extraHtml += '<div class="cal-sub">রুটিন</div>' + ex.routines.map(r=>`<div class="day-item"><span class="rev-tag">${r.time?escapeHtml(r.time):'—'}</span><span class="subject-badge">${escapeHtml(r.subject||'সাধারণ')}</span><span>${escapeHtml(r.topic||'')}</span></div>`).join('');
   let itemsHtml;
   if(!entry || entry.items.length===0){
-    itemsHtml = '<div class="empty">এই দিনে কোনো রিভিশন নেই।</div>';
+    itemsHtml = extraHtml ? '' : '<div class="empty">এই দিনে কোনো রিভিশন নেই।</div>';
   }else{
     itemsHtml = entry.items.map(({ch,r})=>`
       <div class="day-item">
@@ -1300,7 +1320,7 @@ function renderCalendarDetail(reviewMap){
       </div>
     `).join('');
   }
-  detail.innerHTML = `<div class="cal-detail-title">${label}</div>${itemsHtml}`;
+  detail.innerHTML = `<div class="cal-detail-title">${label}</div>${itemsHtml}${extraHtml}`;
   detail.querySelectorAll('[data-cal="late"]').forEach(b=>b.addEventListener('click', ()=>openRate(b.dataset.id, parseInt(b.dataset.days), true)));
   detail.querySelectorAll('[data-cal="skip"]').forEach(b=>b.addEventListener('click', ()=>{
     if(confirm('এই দিনের রিভিউটা এড়িয়ে যেতে চান? এটা আর মিস হিসেবে দেখাবে না।')) skipReview(b.dataset.id, parseInt(b.dataset.days));
@@ -1341,7 +1361,9 @@ function renderCalendar(){
     if(dateStr===selectedCalDate) cls += ' is-selected';
     if(entry && entry.hasMissed) cls += ' has-missed';
     cell.className = cls;
-    cell.innerHTML = `${toBn(day)}${entry ? '<span class="cal-dot"></span>' : ''}`;
+    const ex0 = extrasOn(dateStr);
+    const dots = (entry?'<i class="rv"></i>':'')+(ex0.todos.length?'<i class="td"></i>':'')+(ex0.routines.length?'<i class="rt"></i>':'');
+    cell.innerHTML = `${toBn(day)}${dots?'<span class="cal-dots">'+dots+'</span>':''}`;
     cell.addEventListener('click', ()=>{ selectedCalDate = dateStr; renderCalendar(); });
     grid.appendChild(cell);
   }
@@ -1990,6 +2012,7 @@ render();
 /* ---------- language (Bengali source text, English overlay) ---------- */
 let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
 const D = {
+'রিভিউ':'Review',
 'আগের রুটিন':'Earlier routine',
 'ফাইল পড়া হয়েছে':'File read','ফাইল পড়া যায়নি। .xlsx বা .csv ফাইল দিন।':'Could not read the file. Use .xlsx or .csv.',
 'ঘণ্টা':'Hours','মিনিট':'Minutes','কত সময় পড়লাম? (ঐচ্ছিক)':'How long did you study? (optional)','কত সময় লাগল? (ঐচ্ছিক)':'How long did it take? (optional)','পড়ার সময়':'Study time','মোট':'Total','সাবজেক্ট অনুযায়ী মোট সময়':'Total time by subject',
