@@ -755,8 +755,8 @@
 <div class="sheet-bg" id="imSheet"><div class="sheet">
   <h2>Excel / Sheet থেকে রুটিন</h2>
   <div class="tf"><input placeholder=" " type="text" id="imSubject" list="subjectSuggestions" autocomplete="off"><label for="imSubject">কোন সাবজেক্টের রুটিন</label></div>
-  <div class="tf"><textarea placeholder=" " id="imText"></textarea><label for="imText">এখানে paste করুন</label><div class="help">Excel বা Google Sheet-এ ঘরগুলো select করে copy করুন, এখানে paste করুন। কলাম: দিন | সময় | টপিক (যেমনঃ শনি | 7:00 PM | অঙ্ক)। অথবা নিচে CSV ফাইল দিন (Excel-এ Save As → CSV)।</div></div>
-  <input type="file" id="imFile" accept=".csv,.tsv,.txt" style="margin:0 0 14px;color:var(--ink-dim)">
+  <div class="tf"><textarea placeholder=" " id="imText"></textarea><label for="imText">এখানে paste করুন</label><div class="help">Excel বা Google Sheet-এ ঘরগুলো select করে copy করে এখানে paste করুন, অথবা নিচে ফাইল দিন (.xlsx বা .csv)। কলাম: দিন | সময় | টপিক (যেমনঃ শনি | 7:00 PM | অঙ্ক)। Google Sheet-এ File → Download → Microsoft Excel (.xlsx)।</div></div>
+  <input type="file" id="imFile" style="margin:0 0 14px;color:var(--ink-dim)">
   <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="imGo">ইমপোর্ট করুন</button></div>
 </div></div>
 <div class="snack" id="snack" role="status"></div>
@@ -1825,9 +1825,19 @@ const DAYKEYS = {sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6,'রবি':0,'সো
 function dayIdx(s){
   s = s.trim().toLowerCase().replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d));
   for(const k in DAYKEYS) if(s.startsWith(k)) return DAYKEYS[k];
+  { const w=s.match(/\b(sun|mon|tue|wed|thu|fri|sat)[a-z]*\b/); if(w) return DAYKEYS[w[1]]; for(const k in DAYKEYS) if(/[\u0980-\u09FF]/.test(k) && s.includes(k)) return DAYKEYS[k]; }
   let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return new Date(+m[1],m[2]-1,+m[3]).getDay();
   m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/); if(m) return new Date(+m[3],m[2]-1,+m[1]).getDay();
   return -1;
+}
+const MON3=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function parseDate(x){
+  x=(x||'').trim(); const iso=(y,m,d)=>y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0'); let m;
+  if(m=x.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)) return iso(m[1],+m[2],+m[3]);
+  if(m=x.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/)) return iso(m[3],+m[2],+m[1]);
+  if(m=x.match(/(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})/)){ const i=MON3.indexOf(m[2].slice(0,3).toLowerCase()); if(i>=0) return iso(m[3],i+1,+m[1]); }
+  if(m=x.match(/([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})/)){ const i=MON3.indexOf(m[1].slice(0,3).toLowerCase()); if(i>=0) return iso(m[3],i+1,+m[2]); }
+  return '';
 }
 function mins(t){ const m=(t||'').toLowerCase().match(/(\d{1,2})[:.](\d{2})\s*(am|pm)?/); if(!m) return 9999; let h=+m[1]; if(m[3]==='pm'&&h<12) h+=12; if(m[3]==='am'&&h===12) h=0; return h*60+ +m[2]; }
 function stamp(o){ o.updatedAt = Date.now(); return o; }
@@ -1865,9 +1875,14 @@ function renderExtra(){
   const vis = rs.filter(r=>rtFilter==='সব'||(r.subject||'সাধারণ')===rtFilter);
   const today = new Date().getDay();
   let html='';
-  DAY_ORDER.forEach(d=>{ const L=vis.filter(r=>r.day===d).sort((a,b)=>mins(a.time)-mins(b.time)); if(L.length) html+=`<div class="rt-day${d===today?' today':''}">${DAY_NAMES[d]}${d===today?' (আজ)':''}</div>`+L.map(item).join(''); });
+  DAY_ORDER.forEach(d=>{ const L=vis.filter(r=>!r.date && r.day===d).sort((a,b)=>mins(a.time)-mins(b.time)); if(L.length) html+=`<div class="rt-day${d===today?' today':''}">${DAY_NAMES[d]}${d===today?' (আজ)':''}</div>`+L.map(item).join(''); });
+  { const t0=todayStr(), cmp=(a,b)=>a.date.localeCompare(b.date)||mins(a.time)-mins(b.time);
+    const dated=vis.filter(r=>r.date).sort(cmp), up=dated.filter(r=>r.date>=t0), past=dated.filter(r=>r.date<t0);
+    const grp=L=>{ let o='',last=''; L.forEach(r=>{ if(r.date!==last){ last=r.date; const dd=DAY_NAMES[r.day]+' · '+fmtBn(r.date)+(r.date===t0?' (আজ)':''); o+=`<div class="rt-day${r.date===t0?' today':''}">${dd}</div>`; } o+=item(r); }); return o; };
+    html+=grp(up);
+    if(past.length) html+=`<details class="rt-past"><summary class="rt-day">আগের রুটিন (${past.length})</summary>${grp(past.reverse())}</details>`; }
   $('rtList').innerHTML = html || '<div class="empty">এখনো কোনো রুটিন নেই। উপরের বাটন থেকে যোগ করুন বা Excel/Sheet থেকে আনুন।</div>';
-  const tl = rs.filter(r=>r.day===today).sort((a,b)=>mins(a.time)-mins(b.time));
+  const tl = rs.filter(r=>r.date ? r.date===todayStr() : r.day===today).sort((a,b)=>mins(a.time)-mins(b.time));
   $('rtTodaySec').hidden = !tl.length; $('rtTodayCount').textContent = tl.length; $('rtToday').innerHTML = tl.map(item).join('');
   document.querySelectorAll('[data-rd]').forEach(b=>b.addEventListener('click',()=>{ const r=routines.find(x=>x.id===b.dataset.rd); r.deleted=true; stamp(r); persistExtra(); render(); snack('রুটিন মুছে ফেলা হয়েছে'); }));
 }
@@ -1891,18 +1906,83 @@ $('todoGo').addEventListener('click',()=>go('Todo'));
 $('rtAddBtn').addEventListener('click',()=>openSheet('rtSheet'));
 $('rtImportBtn').addEventListener('click',()=>openSheet('imSheet'));
 $('rtSave').addEventListener('click',()=>{ const topic=$('rtTopic').value.trim(), sub=$('rtSubject').value.trim(); if(!topic&&!sub) return; routines.push(stamp({id:genId('r'),subject:sub,day:+$('rtDay').value,time:$('rtTime').value,topic})); $('rtTopic').value=''; $('rtTime').value=''; closeSheets(); persistExtra(); render(); snack('রুটিন যোগ হয়েছে'); });
-$('imFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ $('imText').value=r.result; }; r.readAsText(f); });
+
+async function inflateRaw(d){ return await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text(); }
+async function unzipXlsx(buf){
+  const dv=new DataView(buf), u8=new Uint8Array(buf); let e=u8.length-22;
+  while(e>=0 && dv.getUint32(e,true)!==0x06054b50) e--;
+  if(e<0) throw new Error('zip');
+  const n=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true); const out={};
+  for(let i=0;i<n;i++){
+    const method=dv.getUint16(p+10,true), cs=dv.getUint32(p+20,true), nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), off=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u8.subarray(p+46,p+46+nl)); p+=46+nl+el+cl;
+    if(name!=='xl/sharedStrings.xml' && !/^xl\/worksheets\/sheet\d+\.xml$/.test(name)) continue;
+    const st=off+30+dv.getUint16(off+26,true)+dv.getUint16(off+28,true), data=u8.subarray(st,st+cs);
+    out[name] = method===0 ? new TextDecoder().decode(data) : await inflateRaw(data);
+  }
+  return out;
+}
+async function xlsxToText(buf){
+  const files = await unzipXlsx(buf);
+  const sheetName = Object.keys(files).filter(k=>k.includes('worksheets')).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))[0];
+  if(!sheetName) throw new Error('nosheet');
+  const parse = s=>new DOMParser().parseFromString(s,'application/xml');
+  const shared = files['xl/sharedStrings.xml'] ? [...parse(files['xl/sharedStrings.xml']).getElementsByTagName('si')].map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join('')) : [];
+  const pad = x=>String(x).padStart(2,'0');
+  const rows = [];
+  [...parse(files[sheetName]).getElementsByTagName('row')].forEach(row=>{
+    const cells=[];
+    [...row.getElementsByTagName('c')].forEach(c=>{
+      const ref=c.getAttribute('r')||'', col=ref.replace(/\d+/g,'').split('').reduce((a,ch)=>a*26+ch.charCodeAt(0)-64,0)-1, t=c.getAttribute('t');
+      const v=c.getElementsByTagName('v')[0], vt=v?v.textContent:'';
+      let val='';
+      if(t==='s') val=shared[+vt]||''; else if(t==='inlineStr') val=[...c.getElementsByTagName('t')].map(x=>x.textContent).join(''); else if(t==='str'||t==='b'||t==='e') val=vt;
+      else if(vt!==''){ const num=parseFloat(vt);
+        if(num>30000 && num<80000){ const d=new Date(Math.round((num-25569)*86400000)); val=d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate()); }
+        else if(num>0 && num<1){ const m=Math.round(num*1440); val=Math.floor(m/60)+':'+pad(m%60); }
+        else val=vt; }
+      cells[col<0?cells.length:col]=val;
+    });
+    if(cells.some(x=>x)) rows.push(Array.from(cells,x=>(x||'').replace(/[\t\r\n]+/g,' ')).join('\t'));
+  });
+  return rows.join('\n');
+}
+$('imFile').addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const ext=(f.name.split('.').pop()||'').toLowerCase();
+    let text;
+    if(ext==='xlsx') text = await xlsxToText(await f.arrayBuffer());
+    else if(ext==='xls'||ext==='ods'||ext==='numbers') throw new Error('fmt');
+    else text = await f.text();
+    $('imText').value = text.replace(/^\ufeff/,'');
+    snack('ফাইল পড়া হয়েছে');
+  }catch(err){ snack('ফাইল পড়া যায়নি। .xlsx বা .csv ফাইল দিন।'); }
+  e.target.value='';
+});
+
 $('imGo').addEventListener('click',()=>{
   const sub=$('imSubject').value.trim(); let n=0, bad=0;
-  $('imText').value.split(/\r?\n/).forEach((line,i)=>{
+  let started=false;
+  const txt=$('imText').value.replace(/^\ufeff/,'');
+  const first=txt.split(/\r?\n/).find(l=>l.trim())||'';
+  const dl = first.includes('\t') ? '\t' : ((first.match(/;/g)||[]).length > (first.match(/,/g)||[]).length ? ';' : ',');
+  txt.split(/\r?\n/).forEach((line,i)=>{
     if(!line.trim()) return;
-    const c = (line.includes('\t')?line.split('\t'):line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)).map(x=>x.trim().replace(/^"|"$/g,''));
-    const d = dayIdx(c[0]||'');
-    if(d<0){ if(i>0) bad++; return; }
-    const time = c.length>2 ? c[1] : '', topic = (c.length>2 ? c.slice(2) : c.slice(1)).join(' ').trim();
-    routines.push(stamp({id:genId('r'),subject:sub,day:d,time,topic})); n++;
+    const c = (dl==='\t' ? line.split('\t') : line.split(new RegExp(dl+'(?=(?:[^"]*"[^"]*")*[^"]*$)'))).map(x=>x.trim().replace(/^"|"$/g,''));
+    let date='', day=-1, time=''; const used=new Set();
+    c.forEach((x,k)=>{ if(!date){ const d0=parseDate(x); if(d0){ date=d0; used.add(k); } } });
+    c.forEach((x,k)=>{ if(!time && /^\d{1,2}([:.]\d{2}\s*(am|pm)?|\s*(am|pm))$/i.test(x)){ time=x; used.add(k); } });
+    if(date){ const q=date.split('-'); day=new Date(+q[0],q[1]-1,+q[2]).getDay(); }
+    else c.forEach((x,k)=>{ if(day<0){ const d0=dayIdx(x); if(d0>=0){ day=d0; used.add(k); } } });
+    if(day<0){ if(started) bad++; return; }
+    started=true;
+    c.forEach((x,k)=>{ if(/^day\s*\d+/i.test(x)) used.add(k); });
+    const topic=c.filter((x,k)=>x && !used.has(k)).join(' - ');
+    if(routines.some(r=>!r.deleted && r.subject===sub && r.day===day && (r.date||'')===date && r.time===time && r.topic===topic)) return;
+    routines.push(stamp({id:genId('r'),subject:sub,day,time,topic,...(date?{date}:{})})); n++;
   });
-  if(n){ $('imText').value=''; closeSheets(); persistExtra(); render(); }
+  if(n || !bad){ $('imText').value=''; closeSheets(); persistExtra(); render(); }
   snack(n+'টি রুটিন যোগ হয়েছে'+(bad?' · '+bad+'টি লাইন বোঝা যায়নি':''));
 });
 render();
@@ -1910,6 +1990,8 @@ render();
 /* ---------- language (Bengali source text, English overlay) ---------- */
 let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
 const D = {
+'আগের রুটিন':'Earlier routine',
+'ফাইল পড়া হয়েছে':'File read','ফাইল পড়া যায়নি। .xlsx বা .csv ফাইল দিন।':'Could not read the file. Use .xlsx or .csv.',
 'ঘণ্টা':'Hours','মিনিট':'Minutes','কত সময় পড়লাম? (ঐচ্ছিক)':'How long did you study? (optional)','কত সময় লাগল? (ঐচ্ছিক)':'How long did it take? (optional)','পড়ার সময়':'Study time','মোট':'Total','সাবজেক্ট অনুযায়ী মোট সময়':'Total time by subject',
 'কত সময় পড়লাম (মিনিট, ঐচ্ছিক)':'Time studied (minutes, optional)','কত সময় লাগল (মিনিট, ঐচ্ছিক)':'Time taken (minutes, optional)',
 'আজকের টু-ডু':"Today's to-do",'সব দেখুন':'See all',
@@ -1917,7 +1999,7 @@ const D = {
 'নতুন কাজ (যেমনঃ Physics অঙ্ক)':'New task (e.g. Physics problems)','সাবজেক্ট (ঐচ্ছিক)':'Subject (optional)','শেষ তারিখ':'Due date','করণীয়':'To do','শেষ হয়েছে':'Done','মুছে ফেলুন':'Clear','কোনো কাজ বাকি নেই।':'Nothing left to do.',
 '+ রুটিন':'+ Routine','Excel / Sheet থেকে':'From Excel / Sheet','আজকের রুটিন':"Today's routine",'নতুন রুটিন':'New routine','কোন দিন':'Day','সময় (ঐচ্ছিক)':'Time (optional)','কী পড়ব / টপিক':'What to study / topic','কোন সাবজেক্টের রুটিন':'Which subject is this routine for','এখানে paste করুন':'Paste here','Excel / Sheet থেকে রুটিন':'Routine from Excel / Sheet',
 'এখনো কোনো রুটিন নেই। উপরের বাটন থেকে যোগ করুন বা Excel/Sheet থেকে আনুন।':'No routine yet. Add one above or import from Excel/Sheet.','রুটিন যোগ হয়েছে':'Routine added','রুটিন মুছে ফেলা হয়েছে':'Routine deleted',
-'Excel বা Google Sheet-এ ঘরগুলো select করে copy করুন, এখানে paste করুন। কলাম: দিন | সময় | টপিক (যেমনঃ শনি | 7:00 PM | অঙ্ক)। অথবা নিচে CSV ফাইল দিন (Excel-এ Save As → CSV)।':'Select the cells in Excel or Google Sheets, copy and paste here. Columns: Day | Time | Topic (e.g. Sat | 7:00 PM | Algebra). Or choose a CSV file below (Excel: Save As → CSV).',
+'Excel বা Google Sheet-এ ঘরগুলো select করে copy করে এখানে paste করুন, অথবা নিচে ফাইল দিন (.xlsx বা .csv)। কলাম: দিন | সময় | টপিক (যেমনঃ শনি | 7:00 PM | অঙ্ক)। Google Sheet-এ File → Download → Microsoft Excel (.xlsx)।':'Select the cells in Excel or Google Sheets, copy and paste here, or choose a file below (.xlsx or .csv). Columns: Day | Time | Topic (e.g. Sat | 7:00 PM | Algebra). In Google Sheets: File → Download → Microsoft Excel (.xlsx).',
 'পুনরাবৃত্তি ট্র্যাকার':'Revision Tracker','আজ':'Today','চ্যাপ্টার':'Chapters','ক্যালেন্ডার':'Calendar','সেটিংস':'Settings','ভাষা / Language':'Language',
 'পরীক্ষা':'Exams','+ যোগ করুন':'+ Add','যোগ করুন':'Add','বাতিল':'Cancel','নতুন চ্যাপ্টার':'New chapter','নতুন পরীক্ষা':'New exam',
 'আজকের রিভিউ':"Today's reviews",'মিস হয়ে যাওয়া':'Missed','আগামী দিনের রিভিশন':'Upcoming reviews','রিভিশন ক্যালেন্ডার':'Review calendar',
@@ -1947,6 +2029,7 @@ const D = {
 'রবিবার':'Sunday','সোমবার':'Monday','মঙ্গলবার':'Tuesday','বুধবার':'Wednesday','বৃহস্পতিবার':'Thursday','শুক্রবার':'Friday','শনিবার':'Saturday','রবি':'Sun','সোম':'Mon','মঙ্গল':'Tue','বুধ':'Wed','বৃহ':'Thu','শুক্র':'Fri','শনি':'Sat'
 };
 const R = [
+[/^আগের রুটিন \((\d+)\)$/,n=>'Earlier ('+n+')'],
 [/^(\d+ ঘণ্টা)?\s?(\d+ মিনিট)?$/,(a,b)=>[a&&a.replace(' ঘণ্টা','h'),b&&b.replace(' মিনিট','min')].filter(Boolean).join(' ')],
 [/^সময় লেগেছে: (.+)$/,x=>'Time: '+x.replace(/ঘণ্টা/g,'h').replace(/মিনিট/g,'min')],[/^মোট সময়: (.+)$/,x=>'Total: '+x.replace(/ঘণ্টা/g,'h').replace(/মিনিট/g,'min')],
 [/^(\d+)টি রুটিন যোগ হয়েছে$/,n=>n+' routine items added'],[/^(\d+)টি লাইন বোঝা যায়নি$/,n=>n+' lines not understood'],
