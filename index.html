@@ -577,7 +577,7 @@
   .dot.skipped{background:var(--field);border-color:var(--outline);color:var(--ink-dim)}
   .cal-acts{display:flex;gap:8px;width:100%;margin-top:2px}
   .mini-btn.ghost{background:transparent;border:1px solid var(--outline);color:var(--ink)}
-  .ver{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:8px}
+  .ver{text-align:center;font-size:12px;color:var(--ink-dim);margin:2px 0 24px}
   .hs-st{font-size:13px;font-weight:500;margin-top:3px}
   .hs-st.ok{color:var(--green)}.hs-st.late,.hs-st.due{color:var(--amber)}.hs-st.miss{color:var(--red)}.hs-st.skip,.hs-st.pend{color:var(--ink-dim)}
   .hs-meta{font-size:12px;color:var(--ink-dim);margin-top:2px}
@@ -606,6 +606,36 @@
   .cal-sub{font-size:12.5px;font-weight:500;color:var(--ink-dim);margin:14px 0 6px}
   .chk-s{width:18px;height:18px;border-radius:5px;border:2px solid var(--outline);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex:none}
   .chk-s.on{background:var(--amber);border-color:var(--amber);color:var(--on-accent)}
+  .tm-list{padding:6px 16px}
+  .tm-line{display:flex;align-items:baseline;gap:10px;padding:9px 0;font-size:14px;border-top:1px solid var(--line)}
+  .tm-line:first-child{border-top:none}
+  .tm-line i{width:7px;height:7px;border-radius:50%;flex:none;transform:translateY(-1px)}
+  i.ex{background:var(--red)}
+  .tm-line .tl-time{color:var(--ink-dim);font-size:12.5px;min-width:54px}
+  .tm-line .tl-t{flex:1;min-width:0}.tm-line small{display:block;color:var(--ink-dim);font-size:12px;margin-top:2px}
+  .learn-card{padding:16px}
+  .quote{font-size:14.5px;line-height:1.7;color:var(--ink);padding:2px 0 12px}
+  details.tip{border-top:1px solid var(--line)}
+  details.tip>summary{list-style:none;cursor:pointer;padding:12px 0;font-size:14px;font-weight:500;display:flex;justify-content:space-between;gap:10px;align-items:center}
+  details.tip>summary::-webkit-details-marker{display:none}
+  details.tip>summary::after{content:'';width:7px;height:7px;border-right:2px solid var(--ink-dim);border-bottom:2px solid var(--ink-dim);transform:rotate(45deg);flex:none;transition:transform .2s;margin-right:4px}
+  details.tip[open]>summary::after{transform:rotate(225deg)}
+  .tip-body{font-size:13.5px;line-height:1.75;color:var(--ink-dim);padding:0 0 14px}
+  .tip-body p{margin:0 0 8px}.tip-body ul{margin:0 0 8px;padding-left:18px}.tip-body li{margin-bottom:3px}
+  .tip-sub{border-top:1px dashed var(--line);margin-left:2px}
+  .tip-sub>summary{font-weight:400;font-size:13.5px}
+  .nav-btn .pill{width:44px}.nav-btn .nl{font-size:10.5px;white-space:nowrap}.bottom-nav{padding-left:2px;padding-right:2px}
+  body[data-page="Dua"] .fab{display:none}
+  .dua-card{margin-bottom:12px}.dua-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.dua-top b{font-weight:500;font-size:14.5px}
+  .fav{background:none;border:none;color:var(--ink-dim);font-size:22px;cursor:pointer;padding:0 4px;line-height:1}.fav.on{color:var(--amber)}
+  .ar{font-size:23px;line-height:2.1;text-align:right;margin:10px 0 6px;font-family:"Noto Naskh Arabic","Amiri","Scheherazade New","Traditional Arabic",serif}
+  .dm{font-size:14px;line-height:1.7}.ds{font-size:12px;color:var(--ink-dim);margin-top:6px}.dua-acts{display:flex;gap:8px;margin-top:10px}
+  .dua-note{font-size:12px;color:var(--ink-dim);line-height:1.6;margin:8px 2px 0}
+  .accents{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 4px}
+  .acc{background:none;border:none;color:var(--ink-dim);font:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:6px 0}
+  .acc .sw{width:36px;height:36px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 0 1px var(--line)}
+  .acc.on{color:var(--ink)}.acc.on .sw{border-color:var(--bg-card);box-shadow:0 0 0 2.5px var(--ink)}
+  .dp{font-size:13.5px;line-height:1.75;color:var(--amber);margin:2px 0 8px}.dpl{display:block;font-size:11.5px;color:var(--ink-dim);margin-bottom:2px}
 </style>
 </head>
 <body data-page="Today">
@@ -639,6 +669,18 @@
     <section id="missedSection">
       <div class="sec-title red">মিস হয়ে যাওয়া <span class="count" id="missedCount">0</span></div>
       <div id="missedList"></div>
+    </section>
+    <section id="tomorrowSec" hidden>
+      <div class="sec-title">আগামীকাল <span class="count" id="tomorrowCount">0</span></div>
+      <div class="card tm-list" id="tomorrowList"></div>
+    </section>
+    <section id="learnSec">
+      <div class="sec-title">অনুপ্রেরণা ও টিপস</div>
+      <div class="card learn-card">
+        <div class="quote" id="quoteText"></div>
+        <details class="tip" id="tipToday"><summary id="tipTitle"></summary><div class="tip-body" id="tipBody"></div></details>
+        <details class="tip"><summary>সব টিপস দেখুন</summary><div id="tipAll"></div></details>
+      </div>
     </section>
   </div>
 
@@ -677,6 +719,13 @@
     <div id="rtList"></div>
   </div>
 
+  <div class="page" id="pgDua">
+    <div class="rt-actions"><button class="btn btn-amber" id="duaAddBtn">+ নিজের দুয়া</button></div>
+    <div class="seg"><button type="button" id="duaAll" class="on">সব</button><button type="button" id="duaFav">পছন্দের</button></div>
+    <div id="duaList"></div>
+    <div class="dua-note" id="duaNote"></div>
+  </div>
+
   <div class="page" id="pgCalendar">
     <section>
         <div class="sec-title">রিভিশন ক্যালেন্ডার</div>
@@ -705,8 +754,12 @@
     </section>
     <div class="ver">সংস্করণ: ০২ অক্টো ২০২৬ — মিস রিভিউ → সম্পন্ন করুন / এড়িয়ে যান</div>
     <section>
-      <div class="sec-title">অ্যাপের রঙ</div>
-      <div class="card"><div class="themes" id="themeList"></div></div>
+      <div class="sec-title">থিম</div>
+      <div class="card">
+        <div class="seg" id="modeList" style="margin-bottom:18px"><button type="button" data-m="auto">সিস্টেম</button><button type="button" data-m="light">লাইট</button><button type="button" data-m="dark">ডার্ক</button></div>
+        <div class="sheet-label">অ্যাকসেন্ট রং</div>
+        <div class="accents" id="themeList"></div>
+      </div>
     </section>
     <section>
       <div class="sec-title">ব্যাকআপ</div>
@@ -770,12 +823,20 @@
   <input type="file" id="imFile" style="margin:0 0 14px;color:var(--ink-dim)">
   <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="imGo">ইমপোর্ট করুন</button></div>
 </div></div>
+<div class="sheet-bg" id="duaSheet"><div class="sheet">
+  <h2>নিজের দুয়া</h2>
+  <div class="tf"><input placeholder=" " type="text" id="duaTitle"><label for="duaTitle">শিরোনাম (যেমনঃ পরীক্ষার আগে)</label></div>
+  <div class="tf"><textarea placeholder=" " id="duaText"></textarea><label for="duaText">দুয়া (আরবি বা যেকোনো ভাষায়)</label></div>
+  <div class="tf"><textarea placeholder=" " id="duaMean"></textarea><label for="duaMean">অর্থ (ঐচ্ছিক)</label></div>
+  <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="duaSave">যোগ করুন</button></div>
+</div></div>
 <div class="snack" id="snack" role="status"></div>
 <nav class="bottom-nav">
   <button class="nav-btn active" data-p="Today"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg></span><span class="nl">আজ</span></button>
   <button class="nav-btn" data-p="Chapters"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16"/></svg></span><span class="nl">চ্যাপ্টার</span></button>
   <button class="nav-btn" data-p="Todo"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg></span><span class="nl">টু-ডু</span></button>
   <button class="nav-btn" data-p="Routine"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="nl">রুটিন</span></button>
+  <button class="nav-btn" data-p="Dua"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-4.5-2.2-8-5-8-9.5A4.5 4.5 0 0 1 12 8a4.5 4.5 0 0 1 8 3.5C20 16 16.5 18.8 12 21z"/></svg></span><span class="nl">দুয়া</span></button>
   <button class="nav-btn" data-p="Calendar"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span><span class="nl">ক্যালেন্ডার</span></button>
   <button class="nav-btn" data-p="Settings"><span class="pill"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg></span><span class="nl">সেটিংস</span></button>
 </nav>
@@ -813,28 +874,36 @@
 </div></div>
 
 <script>
-const THEMES = {
-  amber:{name:'অ্যাম্বার',sw:'#e3a23a',v:{'--bg':'#14171f','--bg-card':'#1c202b','--ink':'#eee9de','--ink-dim':'#9aa0ae','--line':'#2b3040','--amber':'#e3a23a','--amber-dim':'#6b5327','--slate':'#565f77','--field':'#10131a','--on-accent':'#1c1408','--nav-bg':'rgba(20,23,31,.95)','--glow':'rgba(227,162,58,0.10)'}},
-  teal:{name:'টিল',sw:'#3fb8af',v:{'--bg':'#101a1c','--bg-card':'#172428','--ink':'#e6efee','--ink-dim':'#8fa5a6','--line':'#243739','--amber':'#3fb8af','--amber-dim':'#1f4a47','--slate':'#4f6b6d','--field':'#0c1415','--on-accent':'#06201e','--nav-bg':'rgba(16,26,28,.95)','--glow':'rgba(63,184,175,0.10)'}},
-  blue:{name:'নীল',sw:'#6ea8fe',v:{'--bg':'#121721','--bg-card':'#1a2130','--ink':'#e8ecf4','--ink-dim':'#98a2b8','--line':'#283147','--amber':'#6ea8fe','--amber-dim':'#243a63','--slate':'#53607d','--field':'#0e121a','--on-accent':'#0a1830','--nav-bg':'rgba(18,23,33,.95)','--glow':'rgba(110,168,254,0.10)'}},
-  rose:{name:'গোলাপি',sw:'#e87aa0',v:{'--bg':'#1a1418','--bg-card':'#251c22','--ink':'#f1e8ec','--ink-dim':'#aa97a0','--line':'#3a2b33','--amber':'#e87aa0','--amber-dim':'#5a2a40','--slate':'#715a66','--field':'#140f12','--on-accent':'#2a0b17','--nav-bg':'rgba(26,20,24,.95)','--glow':'rgba(232,122,160,0.10)'}},
-  green:{name:'সবুজ',sw:'#7cc47a',v:{'--bg':'#121a14','--bg-card':'#19251c','--ink':'#e8f0e6','--ink-dim':'#93a597','--line':'#27382b','--amber':'#7cc47a','--amber-dim':'#2a4a2b','--slate':'#53705a','--field':'#0d140f','--on-accent':'#0a2010','--nav-bg':'rgba(18,26,20,.95)','--glow':'rgba(124,196,122,0.10)'}},
-  light:{name:'হালকা',sw:'#f3f5f8',v:{'--bg':'#f3f5f8','--bg-card':'#ffffff','--ink':'#1d2433','--ink-dim':'#5d6678','--line':'#dde2ea','--amber':'#b36b00','--amber-dim':'#fbe7c4','--slate':'#8a93a6','--field':'#eef1f5','--on-accent':'#ffffff','--nav-bg':'rgba(255,255,255,.95)','--glow':'rgba(179,107,0,0.07)','--green':'#2f8f5f','--green-dim':'#d6efe2','--red':'#c4472f','--red-dim':'#fbe0da','--on-red':'#ffffff','--on-green':'#ffffff'}}
+const BASE = {
+  dark:{'--bg':'#14171f','--bg-card':'#1c202b','--ink':'#eee9de','--ink-dim':'#9aa0ae','--line':'#2b3040','--slate':'#565f77','--field':'#10131a','--nav-bg':'rgba(28,32,43,.97)','--green':'#4fae7d','--green-dim':'#234030','--red':'#d9705c','--red-dim':'#472823','--on-red':'#2a0f0a','--on-green':'#0d2018'},
+  light:{'--bg':'#f3f5f8','--bg-card':'#ffffff','--ink':'#1d2433','--ink-dim':'#5d6678','--line':'#dde2ea','--slate':'#8a93a6','--field':'#eef1f5','--nav-bg':'rgba(255,255,255,.97)','--green':'#2f8f5f','--green-dim':'#d6efe2','--red':'#c4472f','--red-dim':'#fbe0da','--on-red':'#ffffff','--on-green':'#ffffff'}
 };
-const DARK_BASE = {'--green':'#4fae7d','--green-dim':'#234030','--red':'#d9705c','--red-dim':'#472823','--on-red':'#2a0f0a','--on-green':'#0d2018'};
-function applyTheme(key){
-  const t = THEMES[key] || THEMES.amber;
-  const vars = Object.assign({}, DARK_BASE, t.v);
-  const root = document.documentElement;
+const ACCENTS = {
+  amber:{n:'অ্যাম্বার',d:'#e3a23a',l:'#b36b00'}, orange:{n:'কমলা',d:'#f08a4b',l:'#c2540a'}, red:{n:'লাল',d:'#e5675f',l:'#c0392b'},
+  rose:{n:'গোলাপি',d:'#e87aa0',l:'#c2185b'}, purple:{n:'বেগুনি',d:'#b48cf2',l:'#7b3fc4'}, indigo:{n:'ইন্ডিগো',d:'#8c9cf5',l:'#3f51b5'},
+  blue:{n:'নীল',d:'#6ea8fe',l:'#1565c0'}, cyan:{n:'সায়ান',d:'#4dd0e1',l:'#00838f'}, teal:{n:'টিল',d:'#3fb8af',l:'#00796b'}, green:{n:'সবুজ',d:'#7cc47a',l:'#2e7d32'}
+};
+let themeMode = '', themeAccent = '';
+try{
+  themeMode = localStorage.getItem('revtrack_mode')||''; themeAccent = localStorage.getItem('revtrack_accent')||'';
+  const old = localStorage.getItem('revtrack_theme');
+  if(!themeMode && !themeAccent && old){ if(old==='light') themeMode='light'; else if(ACCENTS[old]){ themeAccent=old; themeMode='dark'; } }
+}catch(e){}
+themeMode = themeMode || 'auto'; if(!ACCENTS[themeAccent]) themeAccent = 'amber';
+const lightQuery = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
+function isLight(){ return themeMode==='light' || (themeMode==='auto' && !!lightQuery && lightQuery.matches); }
+function lum(hex){ const n=parseInt(hex.slice(1),16); const c=[n>>16&255,n>>8&255,n&255].map(v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); }); return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2]; }
+function applyTheme(){
+  const light = isLight(), a = ACCENTS[themeAccent][light?'l':'d'], root = document.documentElement;
+  const vars = Object.assign({}, BASE[light?'light':'dark'], {'--amber':a,'--amber-dim':'color-mix(in srgb, '+a+' 26%, var(--bg-card))','--on-accent':lum(a)>0.4?'#1b1b1b':'#ffffff','--glow':a+'1a'});
   Object.keys(vars).forEach(k=>root.style.setProperty(k, vars[k]));
-  const m = document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute('content', key==='light' ? '#f3f5f8' : vars['--amber']);
-  root.style.colorScheme = key==='light' ? 'light' : 'dark';
-  try{ localStorage.setItem('revtrack_theme', key); }catch(e){}
-  const list = document.getElementById('themeList');
-  if(list) list.querySelectorAll('.theme').forEach(b=>b.classList.toggle('on', b.dataset.k===key));
+  root.style.colorScheme = light ? 'light' : 'dark';
+  const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', vars['--bg']);
+  document.querySelectorAll('#modeList button').forEach(b=>b.classList.toggle('on', b.dataset.m===themeMode));
+  document.querySelectorAll('#themeList .acc').forEach(b=>{ b.classList.toggle('on', b.dataset.k===themeAccent); b.firstChild.style.background = ACCENTS[b.dataset.k][light?'l':'d']; });
 }
-(function(){ let k='amber'; try{ k = localStorage.getItem('revtrack_theme')||'amber'; }catch(e){} applyTheme(k); })();
+if(lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', ()=>{ if(themeMode==='auto') applyTheme(); });
+applyTheme();
 let chapters = [];
 let exams = [];
 let userSubjects = [], todos = [], routines = [];
@@ -1641,7 +1710,7 @@ async function pullAndMerge(cfg){
   const beforeCount = activeChapters().length + activeExams().length;
   chapters = mergeRecords(chapters, remote.chapters || []);
   exams = mergeRecords(exams, remote.exams || []);
-  userSubjects = mergeRecords(userSubjects, remote.subjects || []); todos = mergeRecords(todos, remote.todos || []); routines = mergeRecords(routines, remote.routines || []);
+  userSubjects = mergeRecords(userSubjects, remote.subjects || []); todos = mergeRecords(todos, remote.todos || []); routines = mergeRecords(routines, remote.routines || []); myDuas = mergeRecords(myDuas, remote.duas || []);
   recompute();
   const afterCount = activeChapters().length + activeExams().length;
   return { changed: afterCount - beforeCount, hadRemote: true };
@@ -1654,7 +1723,7 @@ async function pushToGithub(retry){
   syncInFlight = true;
   setSyncStatus('সিঙ্ক হচ্ছে…');
   try{
-    const result = await githubPutFile(cfg, { chapters, exams, subjects: userSubjects, todos, routines, updatedAt: new Date().toISOString() });
+    const result = await githubPutFile(cfg, { chapters, exams, subjects: userSubjects, todos, routines, duas: myDuas, updatedAt: new Date().toISOString() });
     if(result === 'conflict' && !retry){
       // someone else pushed since our last pull — merge remote in, then retry once
       await pullAndMerge(cfg);
@@ -1738,7 +1807,7 @@ function exportData(){
     exportedAt: todayStr(),
     chapters,
     exams,
-    subjects: userSubjects, todos, routines
+    subjects: userSubjects, todos, routines, duas: myDuas
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1770,7 +1839,7 @@ function importData(file){
       const beforeCount = activeChapters().length + activeExams().length;
       chapters = mergeRecords(chapters, incomingChapters);
       exams = mergeRecords(exams, incomingExams);
-      userSubjects = mergeRecords(userSubjects, data.subjects || []); todos = mergeRecords(todos, data.todos || []); routines = mergeRecords(routines, data.routines || []);
+      userSubjects = mergeRecords(userSubjects, data.subjects || []); todos = mergeRecords(todos, data.todos || []); routines = mergeRecords(routines, data.routines || []); myDuas = mergeRecords(myDuas, data.duas || []);
       recompute();
       await save();
       await saveExams();
@@ -1797,10 +1866,10 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
 
 (function buildThemes(){
   const list = document.getElementById('themeList');
-  list.innerHTML = Object.keys(THEMES).map(k=>`<button type="button" class="theme" data-k="${k}"><span class="sw" style="background:${THEMES[k].sw}"></span>${THEMES[k].name}</button>`).join('');
-  list.querySelectorAll('.theme').forEach(b=>b.addEventListener('click',()=>applyTheme(b.dataset.k)));
-  let k='amber'; try{ k = localStorage.getItem('revtrack_theme')||'amber'; }catch(e){}
-  applyTheme(k);
+  list.innerHTML = Object.keys(ACCENTS).map(k=>`<button type="button" class="acc" data-k="${k}"><span class="sw"></span>${ACCENTS[k].n}</button>`).join('');
+  list.querySelectorAll('.acc').forEach(b=>b.addEventListener('click',()=>{ themeAccent=b.dataset.k; try{ localStorage.setItem('revtrack_accent',themeAccent); }catch(e){} applyTheme(); }));
+  document.querySelectorAll('#modeList button').forEach(b=>b.addEventListener('click',()=>{ themeMode=b.dataset.m; try{ localStorage.setItem('revtrack_mode',themeMode); }catch(e){} applyTheme(); }));
+  applyTheme();
 })();
 
 (async function init(){
@@ -1831,8 +1900,8 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
 /* ---------- subjects, to-do, routine ---------- */
 const act = a => a.filter(x=>!x.deleted);
 const _saveExams = saveExams, _loadExams = loadExams;
-saveExams = async function(){ try{ localStorage.setItem('revtrack_extra', JSON.stringify({subjects:userSubjects,todos,routines})); }catch(e){} return _saveExams(); };
-loadExams = async function(){ await _loadExams(); try{ const x = JSON.parse(localStorage.getItem('revtrack_extra')||'{}'); userSubjects=x.subjects||[]; todos=x.todos||[]; routines=x.routines||[]; }catch(e){} };
+saveExams = async function(){ try{ localStorage.setItem('revtrack_extra', JSON.stringify({subjects:userSubjects,todos,routines,duas:myDuas})); }catch(e){} return _saveExams(); };
+loadExams = async function(){ await _loadExams(); try{ const x = JSON.parse(localStorage.getItem('revtrack_extra')||'{}'); userSubjects=x.subjects||[]; todos=x.todos||[]; routines=x.routines||[]; myDuas=x.duas||[]; }catch(e){} };
 function allSubjects(){
   const s = new Set();
   act(userSubjects).forEach(x=>s.add(x.name));
@@ -1909,6 +1978,109 @@ function renderExtra(){
   document.querySelectorAll('[data-rd]').forEach(b=>b.addEventListener('click',()=>{ const r=routines.find(x=>x.id===b.dataset.rd); r.deleted=true; stamp(r); persistExtra(); render(); snack('রুটিন মুছে ফেলা হয়েছে'); }));
 }
 let rtFilter = 'সব';
+/* ---------- dua list ---------- */
+const DUAS = [
+ {g:{bn:'পড়াশোনা ও পরীক্ষা',en:'Study & exams'},items:[
+  {t:{bn:'জ্ঞান বৃদ্ধির দুয়া',en:'For increase in knowledge'},ar:'وَقُل رَّبِّ زِدْنِي عِلْمًا',m:{bn:'বলুন, হে আমার রব, আমার জ্ঞান বাড়িয়ে দিন।',en:'Say: My Lord, increase me in knowledge.'},s:{bn:'সূরা ত্বা-হা ২০:১১৪',en:'Surah Ta-Ha 20:114'}},
+  {t:{bn:'পড়া ও কাজ সহজ হওয়ার দুয়া',en:'For ease and clarity'},ar:'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي وَاحْلُلْ عُقْدَةً مِّن لِّسَانِي يَفْقَهُوا قَوْلِي',m:{bn:'হে আমার রব, আমার বক্ষ প্রশস্ত করে দিন, আমার কাজ সহজ করে দিন, আমার জিহ্বার জড়তা দূর করে দিন, যাতে তারা আমার কথা বুঝতে পারে।',en:'My Lord, expand my chest, ease my task, and remove the knot from my tongue so that they may understand my speech.'},s:{bn:'সূরা ত্বা-হা ২০:২৫–২৮',en:'Surah Ta-Ha 20:25–28'}},
+  {t:{bn:'উপকারী জ্ঞানের দুয়া',en:'For beneficial knowledge'},ar:'اللَّهُمَّ انْفَعْنِي بِمَا عَلَّمْتَنِي وَعَلِّمْنِي مَا يَنْفَعُنِي وَزِدْنِي عِلْمًا',m:{bn:'হে আল্লাহ, আপনি আমাকে যা শিখিয়েছেন তা দিয়ে আমাকে উপকৃত করুন, যা আমার উপকারে আসবে তা শেখান এবং আমার জ্ঞান বাড়িয়ে দিন।',en:'O Allah, benefit me with what You have taught me, teach me what will benefit me, and increase me in knowledge.'},s:{bn:'তিরমিযী, ইবনে মাজাহ',en:'Tirmidhi, Ibn Majah'}},
+  {t:{bn:'ফজরের পর (উপকারী ইলম ও রিযিক)',en:'After Fajr (knowledge, provision)'},ar:'اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا',m:{bn:'হে আল্লাহ, আমি আপনার কাছে উপকারী জ্ঞান, পবিত্র রিযিক এবং কবুলযোগ্য আমল চাই।',en:'O Allah, I ask You for beneficial knowledge, good provision and accepted deeds.'},s:{bn:'ইবনে মাজাহ',en:'Ibn Majah'}},
+  {t:{bn:'কঠিন বিষয় সহজ হওয়ার দুয়া',en:'When something feels difficult'},ar:'اللَّهُمَّ لَا سَهْلَ إِلَّا مَا جَعَلْتَهُ سَهْلًا وَأَنْتَ تَجْعَلُ الْحَزْنَ إِذَا شِئْتَ سَهْلًا',m:{bn:'হে আল্লাহ, আপনি যা সহজ করেন তা ছাড়া কিছুই সহজ নয়; আপনি চাইলে কঠিনকেও সহজ করে দেন।',en:'O Allah, nothing is easy except what You make easy, and You make the difficult easy if You wish.'},s:{bn:'ইবনে হিব্বান',en:'Ibn Hibban'}}]},
+ {g:{bn:'সকাল ও ঘুম',en:'Waking & sleep'},items:[
+  {t:{bn:'ঘুম থেকে উঠে',en:'On waking up'},ar:'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ',m:{bn:'সমস্ত প্রশংসা আল্লাহর, যিনি আমাদের মৃত্যুর (ঘুমের) পর জীবন দিয়েছেন, আর তাঁর কাছেই পুনরুত্থান।',en:'All praise is for Allah who gave us life after causing us to die, and to Him is the resurrection.'},s:{bn:'বুখারী',en:'Bukhari'}},
+  {t:{bn:'ঘুমানোর আগে',en:'Before sleeping'},ar:'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',m:{bn:'হে আল্লাহ, আপনার নামেই আমি মরি (ঘুমাই) ও বাঁচি (জাগি)।',en:'In Your name, O Allah, I die and I live.'},s:{bn:'বুখারী',en:'Bukhari'}}]},
+ {g:{bn:'দুশ্চিন্তা ও ভরসা',en:'Worry & trust in Allah'},items:[
+  {t:{bn:'দুশ্চিন্তা ও অলসতা থেকে আশ্রয়',en:'Refuge from worry and laziness'},ar:'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ وَالْعَجْزِ وَالْكَسَلِ وَالْبُخْلِ وَالْجُبْنِ وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ',m:{bn:'হে আল্লাহ, আমি আপনার কাছে আশ্রয় চাই দুশ্চিন্তা ও দুঃখ থেকে, অক্ষমতা ও অলসতা থেকে, কৃপণতা ও ভীরুতা থেকে, ঋণের ভার ও মানুষের দমন-পীড়ন থেকে।',en:'O Allah, I seek refuge in You from worry and grief, helplessness and laziness, miserliness and cowardice, the burden of debt and being overpowered by men.'},s:{bn:'বুখারী',en:'Bukhari'}},
+  {t:{bn:'আল্লাহর ওপর ভরসা',en:'Trust in Allah'},ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',m:{bn:'আল্লাহই আমাদের জন্য যথেষ্ট, আর তিনি কতই না উত্তম কর্মবিধায়ক।',en:'Allah is sufficient for us, and He is the best disposer of affairs.'},s:{bn:'সূরা আলে ইমরান ৩:১৭৩',en:'Surah Aal Imran 3:173'}}]},
+ {g:{bn:'সাধারণ দুয়া',en:'General'},items:[
+  {t:{bn:'দুনিয়া ও আখিরাতের কল্যাণ',en:'Good in this world and the next'},ar:'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',m:{bn:'হে আমাদের রব, আমাদের দুনিয়াতে কল্যাণ দিন, আখিরাতেও কল্যাণ দিন এবং আমাদের আগুনের শাস্তি থেকে রক্ষা করুন।',en:'Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.'},s:{bn:'সূরা আল-বাকারা ২:২০১',en:'Surah Al-Baqarah 2:201'}},
+  {t:{bn:'বাবা-মায়ের জন্য দুয়া',en:'For parents'},ar:'رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا',m:{bn:'হে আমার রব, তাঁদের উভয়ের প্রতি দয়া করুন, যেমন তাঁরা শৈশবে আমাকে লালন-পালন করেছেন।',en:'My Lord, have mercy on them as they raised me when I was small.'},s:{bn:'সূরা বনী ইসরাঈল ১৭:২৪',en:'Surah Al-Isra 17:24'}},
+  {t:{bn:'নিজের, বাবা-মা ও মুমিনদের জন্য ক্ষমা',en:'Forgiveness for self, parents, believers'},ar:'رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ',m:{bn:'হে আমাদের রব, হিসাবের দিনে আমাকে, আমার বাবা-মাকে এবং মুমিনদের ক্ষমা করুন।',en:'Our Lord, forgive me, my parents and the believers on the Day the account is established.'},s:{bn:'সূরা ইবরাহীম ১৪:৪১',en:'Surah Ibrahim 14:41'}}]}
+];
+const PRON = {
+ bn:['ওয়া কুর রাব্বি যিদনী ইলমা','রাব্বিশ রাহ লী সাদরী, ওয়া ইয়াসসির লী আমরী, ওয়াহলুল উকদাতাম মিল লিসানী, ইয়াফকাহু কাওলী','আল্লাহুম্মানফা’নী বিমা আল্লামতানী, ওয়া আল্লিমনী মা ইয়ানফা’উনী, ওয়া যিদনী ইলমা','আল্লাহুম্মা ইন্নী আস’আলুকা ইলমান নাফিআ, ওয়া রিযকান তাইয়্যিবা, ওয়া আমালাম মুতাকাব্বালা','আল্লাহুম্মা লা সাহলা ইল্লা মা জা’আলতাহু সাহলা, ওয়া আনতা তাজ’আলুল হাযনা ইযা শি’তা সাহলা','আলহামদু লিল্লাহিল্লাযী আহইয়ানা বা’দা মা আমাতানা, ওয়া ইলাইহিন নুশূর','বিসমিকাল্লাহুম্মা আমূতু ওয়া আহইয়া','আল্লাহুম্মা ইন্নী আঊযু বিকা মিনাল হাম্মি ওয়াল হাযানি, ওয়াল আজযি ওয়াল কাসালি, ওয়াল বুখলি ওয়াল জুবনি, ওয়া দালাইদ দাইনি ওয়া গালাবাতির রিজাল','হাসবুনাল্লাহু ওয়া নি’মাল ওয়াকীল','রাব্বানা আতিনা ফিদ-দুনইয়া হাসানাতাঁও ওয়া ফিল আখিরাতি হাসানাতাঁও ওয়া কিনা আযাবান-নার','রাব্বির হামহুমা কামা রাব্বাইয়ানী সাগীরা','রাব্বানাগফির লী ওয়া লি ওয়ালিদাইয়া ওয়া লিল মু’মিনীনা ইয়াওমা ইয়াকূমুল হিসাব'],
+ en:['Wa qur-rabbi zidnī ʿilmā','Rabbish-raḥ lī ṣadrī, wa yassir lī amrī, waḥlul ʿuqdatam min lisānī, yafqahū qawlī','Allāhummanfaʿnī bimā ʿallamtanī, wa ʿallimnī mā yanfaʿunī, wa zidnī ʿilmā','Allāhumma innī asʾaluka ʿilman nāfiʿā, wa rizqan ṭayyibā, wa ʿamalan mutaqabbalā','Allāhumma lā sahla illā mā jaʿaltahū sahlā, wa anta tajʿalul-ḥazna idhā shiʾta sahlā','Al-ḥamdu lillāhil-ladhī aḥyānā baʿda mā amātanā wa ilayhin-nushūr','Bismikal-lāhumma amūtu wa aḥyā','Allāhumma innī aʿūdhu bika minal-hammi wal-ḥazani, wal-ʿajzi wal-kasali, wal-bukhli wal-jubni, wa ḍalaʿid-dayni wa ghalabatir-rijāl','Ḥasbunallāhu wa niʿmal-wakīl','Rabbanā ātinā fid-dunyā ḥasanatan wa fil-ākhirati ḥasanatan wa qinā ʿadhāban-nār','Rabbir-ḥamhumā kamā rabbayānī ṣaghīrā','Rabbanagh-fir lī wa li-wālidayya wa lil-muʾminīna yawma yaqūmul-ḥisāb']
+};
+let myDuas = [], duaFav = [], duaView = 'all';
+try{ duaFav = JSON.parse(localStorage.getItem('revtrack_duafav')||'[]'); }catch(e){}
+function renderDua(){
+  const L = (typeof lang!=='undefined' && lang==='en') ? 'en' : 'bn';
+  let html = '', n = 0;
+  const card = (id,t,ar,m,s,mine,pr)=>{ const f=duaFav.includes(id); if(duaView==='fav'&&!f) return ''; n++;
+    return `<div class="card dua-card"><div class="dua-top"><b>${t}</b><button class="fav${f?' on':''}" data-df="${id}">${f?'★':'☆'}</button></div><div class="ar" dir="rtl" lang="ar">${ar}</div>${pr?`<div class="dp"><span class="dpl">উচ্চারণ</span>${pr}</div>`:''}${m?`<div class="dm">${m}</div>`:''}${s?`<div class="ds">${s}</div>`:''}<div class="dua-acts"><button class="mini-btn" data-dc="${id}">কপি করুন</button>${mine?`<button class="del-btn" data-dd="${id}">মুছুন</button>`:''}</div></div>`; };
+  let pk = 0;
+  DUAS.forEach((g,gi)=>{ const c = g.items.map((x,i)=>card('b'+gi+'_'+i,x.t[L],x.ar,x.m[L],x.s[L],false,PRON[L][pk++])).join(''); if(c) html += `<div class="rt-day">${g.g[L]}</div>`+c; });
+  const mine = act(myDuas).map(d=>card(d.id,escapeHtml(d.title||''),escapeHtml(d.text||''),d.meaning?escapeHtml(d.meaning):'','',true)).join('');
+  if(mine) html += '<div class="rt-day">আমার দুয়া</div>'+mine;
+  $('duaList').innerHTML = html || '<div class="empty">কোনো পছন্দের দুয়া নেই। ☆ চাপ দিয়ে পছন্দের তালিকায় রাখুন।</div>';
+  $('duaNote').textContent = L==='en' ? 'Pronunciation is approximate; learn correct recitation from a teacher. Please also verify the Arabic text and meanings against a reliable published collection.' : 'উচ্চারণ আনুমানিক — শুদ্ধ তিলাওয়াত শিক্ষকের কাছ থেকে শিখে নিন। আরবি পাঠ ও অর্থও নির্ভরযোগ্য প্রকাশিত সংকলন থেকে মিলিয়ে নেওয়ার অনুরোধ রইল।';
+  $('duaList').querySelectorAll('[data-df]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.df; duaFav = duaFav.includes(id)?duaFav.filter(x=>x!==id):[...duaFav,id]; try{ localStorage.setItem('revtrack_duafav', JSON.stringify(duaFav)); }catch(e){} renderDua(); }));
+  $('duaList').querySelectorAll('[data-dc]').forEach(b=>b.addEventListener('click',()=>{ const c=b.closest('.dua-card'); const txt=c.querySelector('.ar').textContent+(c.querySelector('.dm')?'\n'+c.querySelector('.dm').textContent:''); (navigator.clipboard?navigator.clipboard.writeText(txt.replace(/\u2060/g,'')):Promise.reject()).then(()=>snack('কপি হয়েছে')).catch(()=>{}); }));
+  $('duaList').querySelectorAll('[data-dd]').forEach(b=>b.addEventListener('click',()=>{ const d=myDuas.find(x=>x.id===b.dataset.dd); if(d && confirm('এই দুয়াটা মুছে ফেলতে চান?')){ d.deleted=true; stamp(d); persistExtra(); renderDua(); } }));
+}
+$('duaAll').addEventListener('click',()=>{ duaView='all'; $('duaAll').classList.add('on'); $('duaFav').classList.remove('on'); renderDua(); });
+$('duaFav').addEventListener('click',()=>{ duaView='fav'; $('duaFav').classList.add('on'); $('duaAll').classList.remove('on'); renderDua(); });
+$('duaAddBtn').addEventListener('click',()=>openSheet('duaSheet'));
+$('duaSave').addEventListener('click',()=>{ const text=$('duaText').value.trim(); if(!text) return; myDuas.push(stamp({id:genId('d'),title:$('duaTitle').value.trim()||'আমার দুয়া',text,meaning:$('duaMean').value.trim()})); ['duaTitle','duaText','duaMean'].forEach(i=>$(i).value=''); closeSheets(); persistExtra(); renderDua(); snack('দুয়া যোগ হয়েছে'); });
+
+/* ---------- motivation + study tips, tomorrow preview ---------- */
+const QUOTES = [
+ {bn:'প্রতিদিনের ছোট অগ্রগতিই বড় সাফল্যের ভিত্তি।',en:'Small daily progress is the foundation of great success.'},
+ {bn:'আজ যেটুকু পড়বে, কাল সেটাই তোমার আত্মবিশ্বাস হবে।',en:'What you study today becomes tomorrow\'s confidence.'},
+ {bn:'নিয়মিততা অনেক সময় প্রতিভার চেয়েও বেশি দূর নিয়ে যায়।',en:'Consistency often takes you further than talent.'},
+ {bn:'ভুল মানে শেখার সুযোগ — ভুলগুলো লিখে রাখো, পরের বার সেগুলোই শক্তি হবে।',en:'A mistake is a chance to learn. Write it down and it becomes a strength next time.'},
+ {bn:'সবকিছু একসাথে নয়, আজকের অংশটুকু ভালোভাবে শেষ করো।',en:'Not everything at once. Just finish today\'s part well.'},
+ {bn:'বিরতি নেওয়া দুর্বলতা নয়, ভালো পড়ার অংশ।',en:'Taking a break is not weakness; it is part of studying well.'},
+ {bn:'যে অংশটা কঠিন লাগছে, সেখানেই তোমার উন্নতির সুযোগ সবচেয়ে বেশি।',en:'The part that feels hardest is where you can improve the most.'}
+];
+const TIPS = [
+ {t:{bn:'Active Recall (অ্যাক্টিভ রিকল) কী?',en:'What is Active Recall?'},
+  b:{bn:'<p>বই বা নোট না দেখে নিজে থেকে মনে করার চেষ্টা করাকে active recall বলে। শুধু বারবার পড়ার চেয়ে এতে মস্তিষ্ক তথ্য বের করে আনার অনুশীলন করে, তাই দীর্ঘদিন মনে থাকে।</p><p><b>কীভাবে করবে:</b> একটা অংশ পড়ে বই বন্ধ করো, যা মনে আছে লিখে ফেলো বা নিজেকে প্রশ্ন করো। তারপর বই খুলে মিলিয়ে নাও কোথায় ভুল বা বাদ পড়েছে।</p>',
+     en:'<p>Active recall means trying to remember something on your own, without looking at the book or notes. It trains your brain to retrieve information, so it lasts far longer than simply re-reading.</p><p><b>How to do it:</b> read a section, close the book, and write down or say what you remember. Then open the book and check what you got wrong or missed.</p>'}},
+ {t:{bn:'Mock Test কেন গুরুত্বপূর্ণ?',en:'Why is a mock test important?'},
+  b:{bn:'<p>পরীক্ষার মতো পরিবেশে সময় ধরে প্রশ্ন সমাধান করাকে mock test বলে। এর উপকার:</p><ul><li>নিজের দুর্বল জায়গা পরীক্ষার আগেই ধরা পড়ে।</li><li>সময় ব্যবস্থাপনার অভ্যাস তৈরি হয়।</li><li>পরীক্ষার ভয় ও চাপ কমে।</li><li>পড়া বিষয় মনে করার অনুশীলন হয় (active recall)।</li></ul><p>টেস্টের পর ভুলগুলো আলাদা করে লিখে সেই টপিকগুলো আবার রিভিউ করো।</p>',
+     en:'<p>A mock test means solving questions under timed, exam-like conditions. Why it helps:</p><ul><li>You find your weak areas before the real exam.</li><li>You build the habit of managing time.</li><li>Exam fear and pressure reduce.</li><li>You practise recalling what you studied (active recall).</li></ul><p>After a test, list your mistakes separately and review those topics again.</p>'}},
+ {t:{bn:'কীভাবে ভালো নোট করবে?',en:'How to take good notes'},
+  b:{bn:'<p>সবকিছু টুকে না রেখে মূল ধারণা, সূত্র, উদাহরণ আর নিজের ভাষায় ব্যাখ্যা লেখো। প্রতিটি অধ্যায়ের শেষে ৫–৭ লাইনের সারসংক্ষেপ আর কয়েকটা সম্ভাব্য প্রশ্ন যোগ করো।</p><p><b>Cornell method:</b> পাতা ভাগ করে বাঁ পাশে মূল পয়েন্ট বা প্রশ্ন, ডান পাশে নোট, আর নিচে সারসংক্ষেপ লেখো। আলাদা জায়গায় নিজের ভুলগুলোর তালিকা রাখলে রিভিশনে সময় বাঁচে।</p>',
+     en:'<p>Don\'t copy everything. Write the key ideas, formulas, examples and your own explanation. At the end of each chapter add a 5–7 line summary and a few likely questions.</p><p><b>Cornell method:</b> divide the page: key points or questions on the left, notes on the right, and a summary at the bottom. Keeping a separate list of your mistakes saves time during revision.</p>'}},
+ {t:{bn:'Spaced Repetition (স্পেসড রিপিটিশন)',en:'Spaced Repetition'},
+  b:{bn:'<p>একই বিষয় ধাপে ধাপে বাড়তে থাকা বিরতিতে আবার পড়ার পদ্ধতি। ভুলে যাওয়ার আগে ঝালিয়ে নিলে তথ্য দীর্ঘস্থায়ী হয়। এই অ্যাপের ৩, ৭ ও ১৫ দিনের রিভিউ ঠিক এই নিয়মেই সাজানো।</p>',
+     en:'<p>Re-reading the same topic at gradually increasing intervals. Reviewing just before you forget makes the memory last. The 3, 7 and 15 day reviews in this app follow exactly this idea.</p>'}},
+ {t:{bn:'Pomodoro Technique',en:'The Pomodoro Technique'},
+  b:{bn:'<p>২৫ মিনিট মনোযোগ দিয়ে পড়ো, তারপর ৫ মিনিট বিরতি। চার রাউন্ড শেষ হলে ১৫–৩০ মিনিটের বড় বিরতি নাও। এতে মনোযোগ ধরে রাখা সহজ হয় এবং ক্লান্তি কম লাগে।</p>',
+     en:'<p>Study with full focus for 25 minutes, then take a 5 minute break. After four rounds take a longer 15–30 minute break. It makes focus easier to hold and reduces tiredness.</p>'}},
+ {t:{bn:'Feynman Technique (ফাইনম্যান কৌশল)',en:'The Feynman Technique'},
+  b:{bn:'<p>কোনো বিষয় এমনভাবে নিজের ভাষায় ব্যাখ্যা করো, যেন কাউকে শেখাচ্ছো। যেখানে আটকে যাবে, সেটাই তোমার না-বোঝা অংশ — সেখানে ফিরে গিয়ে আবার শিখে সহজ করে ব্যাখ্যা করো।</p>',
+     en:'<p>Explain a topic in your own words as if you were teaching someone. Wherever you get stuck is the part you have not understood yet. Go back, relearn it, and explain it more simply.</p>'}},
+ {t:{bn:'Interleaving (মিশিয়ে অনুশীলন)',en:'Interleaving'},
+  b:{bn:'<p>একই ধরনের সমস্যা পরপর না করে বিভিন্ন টপিক মিশিয়ে অনুশীলন করলে কোন পদ্ধতি কখন লাগবে সেটা চেনা শেখা হয়। পরীক্ষায় প্রশ্ন মিশ্রভাবেই আসে, তাই এটা ভালো প্রস্তুতি।</p>',
+     en:'<p>Instead of doing the same type of problem repeatedly, mix different topics in practice. You learn to recognise which method fits which problem, which is good preparation because exam questions come mixed.</p>'}},
+ {t:{bn:'ঘুম ও মনে রাখা',en:'Sleep and memory'},
+  b:{bn:'<p>পর্যাপ্ত ঘুম পড়া বিষয় স্মৃতিতে পাকা করতে সাহায্য করে। পরীক্ষার আগের রাতে সারারাত জেগে পড়ার চেয়ে নিয়মিত ঘুমানো বেশি কাজে দেয়।</p>',
+     en:'<p>Enough sleep helps consolidate what you studied into memory. Regular sleep before an exam helps more than studying all night.</p>'}}
+];
+function dayOfYear(){ const n=new Date(); return Math.floor((n-new Date(n.getFullYear(),0,0))/86400000); }
+function renderLearn(){
+  const L = (typeof lang!=='undefined' && lang==='en') ? 'en' : 'bn', k = dayOfYear();
+  const q = QUOTES[k % QUOTES.length], tp = TIPS[k % TIPS.length];
+  $('quoteText').textContent = '“'+q[L]+'”';
+  $('tipTitle').textContent = (L==='en'?'Tip of the day: ':'আজকের টিপ: ')+tp.t[L];
+  $('tipBody').innerHTML = tp.b[L];
+  $('tipAll').innerHTML = TIPS.map(x=>`<details class="tip tip-sub"><summary>${x.t[L]}</summary><div class="tip-body">${x.b[L]}</div></details>`).join('');
+}
+function renderTomorrow(){
+  const d=new Date(); d.setDate(d.getDate()+1); const ds=ymd(d.getFullYear(), d.getMonth(), d.getDate());
+  const ex=extrasOn(ds), rows=[];
+  exams.filter(e=>!e.deleted && e.date===ds).forEach(e=>rows.push(`<div class="tm-line"><i class="ex"></i><span class="tl-time">পরীক্ষা কাল</span><span class="tl-t">${escapeHtml(e.name)}</span></div>`));
+  ex.routines.forEach(r=>rows.push(`<div class="tm-line"><i class="rt"></i><span class="tl-time">${r.time?escapeHtml(r.time):'—'}</span><span class="tl-t">${escapeHtml(r.topic||r.subject||'')}${r.subject&&r.topic?`<small>${escapeHtml(r.subject)}</small>`:''}</span></div>`));
+  ex.todos.filter(t=>!t.done).forEach(t=>rows.push(`<div class="tm-line"><i class="td"></i><span class="tl-time">টু-ডু</span><span class="tl-t">${escapeHtml(t.text)}</span></div>`));
+  const rv=[]; activeChapters().forEach(c=>c.reviews.forEach(r=>{ if(r.dueDate===ds && r.status!=='done' && r.status!=='done_late' && r.status!=='skipped') rv.push(c.name); }));
+  if(rv.length) rows.push(`<div class="tm-line"><i class="rv"></i><span class="tl-time">${toBn(rv.length)}টি রিভিউ</span><span class="tl-t">${rv.slice(0,3).map(escapeHtml).join(', ')}${rv.length>3?' …':''}</span></div>`);
+  const show=rows.slice(0,6);
+  $('tomorrowSec').hidden=!rows.length; $('tomorrowCount').textContent=rows.length;
+  $('tomorrowList').innerHTML=show.join('')+(rows.length>6?`<div class="tm-line"><span class="tl-t" style="color:var(--ink-dim)">+${toBn(rows.length-6)} আরও</span></div>`:'');
+}
+
 function renderTime(){
   let total=0, today=0; const by={}; const t0=todayStr();
   act(chapters).forEach(c=>{
@@ -1919,7 +2091,7 @@ function renderTime(){
   const rows = Object.entries(by).sort((a,b)=>b[1]-a[1]);
   $('subjTime').innerHTML = rows.length ? '<div class="card" style="margin-bottom:14px"><div class="sec-title">সাবজেক্ট অনুযায়ী মোট সময়</div>'+rows.map(([s,m])=>`<div class="tm-row"><span>${escapeHtml(s)}</span><b>${fmtMins(m)}</b></div>`).join('')+`<div class="tm-row tm-sum"><span>মোট</span><b>${fmtMins(total)}</b></div></div>` : '';
 }
-{ const _r = render; render = function(){ _r(); renderExtra(); renderTime(); }; }
+{ const _r = render; render = function(){ _r(); renderExtra(); renderTime(); renderTomorrow(); renderLearn(); renderDua(); }; }
 $('rtDay').innerHTML = DAY_ORDER.map(d=>`<option value="${d}">${DAY_NAMES[d]}</option>`).join('');
 $('subjAdd').addEventListener('click',()=>{ const n=$('subjName').value.trim(); if(!n) return; if(!allSubjects().includes(n)) userSubjects.push(stamp({id:genId('s'),name:n})); $('subjName').value=''; persistExtra(); renderSubjSheet(); render(); snack('সাবজেক্ট যোগ হয়েছে'); });
 $('todoAdd').addEventListener('click',()=>{ const t=$('todoText').value.trim(); if(!t) return; todos.push(stamp({id:genId('t'),text:t,subject:$('todoSubject').value.trim(),due:$('todoDue').value||'',done:false})); $('todoText').value=''; $('todoDue').value=''; persistExtra(); render(); });
@@ -2007,11 +2179,14 @@ $('imGo').addEventListener('click',()=>{
   if(n || !bad){ $('imText').value=''; closeSheets(); persistExtra(); render(); }
   snack(n+'টি রুটিন যোগ হয়েছে'+(bad?' · '+bad+'টি লাইন বোঝা যায়নি':''));
 });
-render();
 
 /* ---------- language (Bengali source text, English overlay) ---------- */
 let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
 const D = {
+'উচ্চারণ':'Pronunciation',
+'থিম':'Theme','সিস্টেম':'System','লাইট':'Light','ডার্ক':'Dark','অ্যাকসেন্ট রং':'Accent colour','কমলা':'Orange','লাল':'Red','বেগুনি':'Purple','ইন্ডিগো':'Indigo','সায়ান':'Cyan',
+'দুয়া':'Dua','+ নিজের দুয়া':'+ My dua','নিজের দুয়া':'My dua','পছন্দের':'Favourites','আমার দুয়া':'My duas','কপি করুন':'Copy','কপি হয়েছে':'Copied','দুয়া যোগ হয়েছে':'Dua added','এই দুয়াটা মুছে ফেলতে চান?':'Delete this dua?','কোনো পছন্দের দুয়া নেই। ☆ চাপ দিয়ে পছন্দের তালিকায় রাখুন।':'No favourites yet. Tap ☆ to save a dua here.','শিরোনাম (যেমনঃ পরীক্ষার আগে)':'Title (e.g. Before the exam)','দুয়া (আরবি বা যেকোনো ভাষায়)':'Dua (Arabic or any language)','অর্থ (ঐচ্ছিক)':'Meaning (optional)',
+'আগামীকাল':'Tomorrow','অনুপ্রেরণা ও টিপস':'Motivation & study tips','সব টিপস দেখুন':'See all study tips','পরীক্ষা কাল':'Exam tomorrow','+ আরও':'+ more',
 'রিভিউ':'Review',
 'আগের রুটিন':'Earlier routine',
 'ফাইল পড়া হয়েছে':'File read','ফাইল পড়া যায়নি। .xlsx বা .csv ফাইল দিন।':'Could not read the file. Use .xlsx or .csv.',
@@ -2052,6 +2227,7 @@ const D = {
 'রবিবার':'Sunday','সোমবার':'Monday','মঙ্গলবার':'Tuesday','বুধবার':'Wednesday','বৃহস্পতিবার':'Thursday','শুক্রবার':'Friday','শনিবার':'Saturday','রবি':'Sun','সোম':'Mon','মঙ্গল':'Tue','বুধ':'Wed','বৃহ':'Thu','শুক্র':'Fri','শনি':'Sat'
 };
 const R = [
+[/^(\d+)টি রিভিউ$/,n=>n+(n==1?' review':' reviews')],[/^\+(\d+) আরও$/,n=>'+'+n+' more'],
 [/^আগের রুটিন \((\d+)\)$/,n=>'Earlier ('+n+')'],
 [/^(\d+ ঘণ্টা)?\s?(\d+ মিনিট)?$/,(a,b)=>[a&&a.replace(' ঘণ্টা','h'),b&&b.replace(' মিনিট','min')].filter(Boolean).join(' ')],
 [/^সময় লেগেছে: (.+)$/,x=>'Time: '+x.replace(/ঘণ্টা/g,'h').replace(/মিনিট/g,'min')],[/^মোট সময়: (.+)$/,x=>'Total: '+x.replace(/ঘণ্টা/g,'h').replace(/মিনিট/g,'min')],
@@ -2118,7 +2294,7 @@ window.alert = m => _al(lang==='en' ? tr(m) : m.replace(/\u2060/g,''));
 document.querySelectorAll('#langList .theme').forEach(b=>b.addEventListener('click', ()=>{
   lang = b.dataset.l;
   try{ localStorage.setItem('revtrack_lang', lang); }catch(e){}
-  applyLang();
+  renderLearn(); renderDua(); applyLang();
 }));
 applyLang();
 
