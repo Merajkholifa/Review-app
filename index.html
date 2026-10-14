@@ -827,6 +827,8 @@
   <h2>নিজের দুয়া</h2>
   <div class="tf"><input placeholder=" " type="text" id="duaTitle"><label for="duaTitle">শিরোনাম (যেমনঃ পরীক্ষার আগে)</label></div>
   <div class="tf"><textarea placeholder=" " id="duaText"></textarea><label for="duaText">দুয়া (আরবি বা যেকোনো ভাষায়)</label></div>
+  <div class="tf"><textarea placeholder=" " id="duaPronBn"></textarea><label for="duaPronBn">উচ্চারণ (বাংলায়, ঐচ্ছিক)</label></div>
+  <div class="tf"><textarea placeholder=" " id="duaPronEn"></textarea><label for="duaPronEn">উচ্চারণ (ইংরেজিতে, ঐচ্ছিক)</label></div>
   <div class="tf"><textarea placeholder=" " id="duaMean"></textarea><label for="duaMean">অর্থ (ঐচ্ছিক)</label></div>
   <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="duaSave">যোগ করুন</button></div>
 </div></div>
@@ -2010,7 +2012,7 @@ function renderDua(){
     return `<div class="card dua-card"><div class="dua-top"><b>${t}</b><button class="fav${f?' on':''}" data-df="${id}">${f?'★':'☆'}</button></div><div class="ar" dir="rtl" lang="ar">${ar}</div>${pr?`<div class="dp"><span class="dpl">উচ্চারণ</span>${pr}</div>`:''}${m?`<div class="dm">${m}</div>`:''}${s?`<div class="ds">${s}</div>`:''}<div class="dua-acts"><button class="mini-btn" data-dc="${id}">কপি করুন</button>${mine?`<button class="del-btn" data-dd="${id}">মুছুন</button>`:''}</div></div>`; };
   let pk = 0;
   DUAS.forEach((g,gi)=>{ const c = g.items.map((x,i)=>card('b'+gi+'_'+i,x.t[L],x.ar,x.m[L],x.s[L],false,PRON[L][pk++])).join(''); if(c) html += `<div class="rt-day">${g.g[L]}</div>`+c; });
-  const mine = act(myDuas).map(d=>card(d.id,escapeHtml(d.title||''),escapeHtml(d.text||''),d.meaning?escapeHtml(d.meaning):'','',true)).join('');
+  const mine = act(myDuas).map(d=>card(d.id,escapeHtml(d.title||''),escapeHtml(d.text||''),d.meaning?escapeHtml(d.meaning):'','',true, (()=>{ const x = L==='en' ? (d.pronEn||d.pronBn) : (d.pronBn||d.pronEn); return x ? escapeHtml(x) : ''; })())).join('');
   if(mine) html += '<div class="rt-day">আমার দুয়া</div>'+mine;
   $('duaList').innerHTML = html || '<div class="empty">কোনো পছন্দের দুয়া নেই। ☆ চাপ দিয়ে পছন্দের তালিকায় রাখুন।</div>';
   $('duaNote').textContent = L==='en' ? 'Pronunciation is approximate; learn correct recitation from a teacher. Please also verify the Arabic text and meanings against a reliable published collection.' : 'উচ্চারণ আনুমানিক — শুদ্ধ তিলাওয়াত শিক্ষকের কাছ থেকে শিখে নিন। আরবি পাঠ ও অর্থও নির্ভরযোগ্য প্রকাশিত সংকলন থেকে মিলিয়ে নেওয়ার অনুরোধ রইল।';
@@ -2021,7 +2023,7 @@ function renderDua(){
 $('duaAll').addEventListener('click',()=>{ duaView='all'; $('duaAll').classList.add('on'); $('duaFav').classList.remove('on'); renderDua(); });
 $('duaFav').addEventListener('click',()=>{ duaView='fav'; $('duaFav').classList.add('on'); $('duaAll').classList.remove('on'); renderDua(); });
 $('duaAddBtn').addEventListener('click',()=>openSheet('duaSheet'));
-$('duaSave').addEventListener('click',()=>{ const text=$('duaText').value.trim(); if(!text) return; myDuas.push(stamp({id:genId('d'),title:$('duaTitle').value.trim()||'আমার দুয়া',text,meaning:$('duaMean').value.trim()})); ['duaTitle','duaText','duaMean'].forEach(i=>$(i).value=''); closeSheets(); persistExtra(); renderDua(); snack('দুয়া যোগ হয়েছে'); });
+$('duaSave').addEventListener('click',()=>{ const text=$('duaText').value.trim(); if(!text) return; myDuas.push(stamp({id:genId('d'),title:$('duaTitle').value.trim()||'আমার দুয়া',text,meaning:$('duaMean').value.trim(),pronBn:$('duaPronBn').value.trim(),pronEn:$('duaPronEn').value.trim()})); ['duaTitle','duaText','duaPronBn','duaPronEn','duaMean'].forEach(i=>$(i).value=''); closeSheets(); persistExtra(); renderDua(); snack('দুয়া যোগ হয়েছে'); });
 
 /* ---------- motivation + study tips, tomorrow preview ---------- */
 const QUOTES = [
@@ -2183,6 +2185,7 @@ $('imGo').addEventListener('click',()=>{
 /* ---------- language (Bengali source text, English overlay) ---------- */
 let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
 const D = {
+'উচ্চারণ (বাংলায়, ঐচ্ছিক)':'Pronunciation in Bengali (optional)','উচ্চারণ (ইংরেজিতে, ঐচ্ছিক)':'Pronunciation in English (optional)',
 'উচ্চারণ':'Pronunciation',
 'থিম':'Theme','সিস্টেম':'System','লাইট':'Light','ডার্ক':'Dark','অ্যাকসেন্ট রং':'Accent colour','কমলা':'Orange','লাল':'Red','বেগুনি':'Purple','ইন্ডিগো':'Indigo','সায়ান':'Cyan',
 'দুয়া':'Dua','+ নিজের দুয়া':'+ My dua','নিজের দুয়া':'My dua','পছন্দের':'Favourites','আমার দুয়া':'My duas','কপি করুন':'Copy','কপি হয়েছে':'Copied','দুয়া যোগ হয়েছে':'Dua added','এই দুয়াটা মুছে ফেলতে চান?':'Delete this dua?','কোনো পছন্দের দুয়া নেই। ☆ চাপ দিয়ে পছন্দের তালিকায় রাখুন।':'No favourites yet. Tap ☆ to save a dua here.','শিরোনাম (যেমনঃ পরীক্ষার আগে)':'Title (e.g. Before the exam)','দুয়া (আরবি বা যেকোনো ভাষায়)':'Dua (Arabic or any language)','অর্থ (ঐচ্ছিক)':'Meaning (optional)',
