@@ -636,6 +636,11 @@
   .acc .sw{width:36px;height:36px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 0 1px var(--line)}
   .acc.on{color:var(--ink)}.acc.on .sw{border-color:var(--bg-card);box-shadow:0 0 0 2.5px var(--ink)}
   .dp{font-size:13.5px;line-height:1.75;color:var(--amber);margin:2px 0 8px}.dpl{display:block;font-size:11.5px;color:var(--ink-dim);margin-bottom:2px}
+  .chk.off{display:inline-block;opacity:.35;border-style:dashed}
+  .day-chips{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 16px}
+  .dchip{height:34px;padding:0 14px;border-radius:17px;border:1px solid var(--outline);background:transparent;color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer}
+  .dchip.on{background:var(--amber-dim);border-color:transparent;color:var(--ink)}
+  #pgTodo .tf label,#pgTodo .tf select{background:var(--bg)}
 </style>
 </head>
 <body data-page="Today">
@@ -708,8 +713,11 @@
       <div class="tf"><input placeholder=" " type="text" id="todoSubject" list="subjectSuggestions" autocomplete="off"><label for="todoSubject">সাবজেক্ট (ঐচ্ছিক)</label></div>
       <div class="tf date"><input placeholder=" " type="date" id="todoDue"><label for="todoDue">শেষ তারিখ</label></div>
     </div>
+    <div class="tf date"><select id="todoRepeat"><option value="">একবার</option><option value="daily">প্রতিদিন</option><option value="days">নির্দিষ্ট বার</option></select><label for="todoRepeat">পুনরাবৃত্তি</label><div class="help">প্রতিদিন, অথবা নির্দিষ্ট বারগুলোতে আবার আসবে। তারিখ দিলে সেই দিন থেকে শুরু, না দিলে আজ থেকে।</div></div>
+    <div class="day-chips" id="todoDays" hidden></div>
     <button class="btn btn-amber" id="todoAdd" style="width:100%;margin-bottom:22px">যোগ করুন</button>
     <section><div class="sec-title">করণীয় <span class="count" id="todoCount">0</span></div><div id="todoList"></div></section>
+    <section id="todoRepSec" hidden><div class="sec-title">নিয়মিত কাজ <span class="count" id="todoRepCount">0</span></div><div id="todoRep"></div></section>
     <section><div class="sec-title">শেষ হয়েছে <span class="count" id="todoDoneCount">0</span><span class="grow"></span><button class="mini-btn" id="todoClear">মুছে ফেলুন</button></div><div id="todoDone"></div></section>
   </div>
 
@@ -752,7 +760,7 @@
       <div class="sec-title">ভাষা / Language</div>
       <div class="card"><div class="themes" id="langList" style="grid-template-columns:1fr 1fr"><button type="button" class="theme" data-l="bn">বাংলা</button><button type="button" class="theme" data-l="en">English</button></div></div>
     </section>
-    <div class="ver">সংস্করণ: ০২ অক্টো ২০২৬ — মিস রিভিউ → সম্পন্ন করুন / এড়িয়ে যান</div>
+    <div class="ver">সংস্করণ: ১৪ অক্টো ২০২৬ — দুয়ায় নিজের উচ্চারণ</div>
     <section>
       <div class="sec-title">থিম</div>
       <div class="card">
@@ -824,11 +832,12 @@
   <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="imGo">ইমপোর্ট করুন</button></div>
 </div></div>
 <div class="sheet-bg" id="duaSheet"><div class="sheet">
-  <h2>নিজের দুয়া</h2>
+  <h2 id="duaSheetTitle">নিজের দুয়া</h2>
   <div class="tf"><input placeholder=" " type="text" id="duaTitle"><label for="duaTitle">শিরোনাম (যেমনঃ পরীক্ষার আগে)</label></div>
   <div class="tf"><textarea placeholder=" " id="duaText"></textarea><label for="duaText">দুয়া (আরবি বা যেকোনো ভাষায়)</label></div>
   <div class="tf"><textarea placeholder=" " id="duaPronBn"></textarea><label for="duaPronBn">উচ্চারণ (বাংলায়, ঐচ্ছিক)</label></div>
   <div class="tf"><textarea placeholder=" " id="duaPronEn"></textarea><label for="duaPronEn">উচ্চারণ (ইংরেজিতে, ঐচ্ছিক)</label></div>
+  <div class="tf"><input placeholder=" " type="text" id="duaSource"><label for="duaSource">সূত্র (ঐচ্ছিক, যেমনঃ বুখারী, তিরমিযী)</label></div>
   <div class="tf"><textarea placeholder=" " id="duaMean"></textarea><label for="duaMean">অর্থ (ঐচ্ছিক)</label></div>
   <div class="sheet-actions"><button class="btn btn-ghost" data-close>বাতিল</button><button class="btn btn-amber" id="duaSave">যোগ করুন</button></div>
 </div></div>
@@ -1363,9 +1372,28 @@ function buildReviewMap(){
   return map;
 }
 
+function todoOn(t, ds){
+  if(!t.repeat) return t.due===ds;
+  if(ds < (t.start||'')) return false;
+  if(t.repeat==='daily') return true;
+  const days = t.days || [new Date(t.start+'T00:00:00').getDay()];
+  return days.includes(new Date(ds+'T00:00:00').getDay());
+}
+const SH = {0:'রবি',1:'সোম',2:'মঙ্গল',3:'বুধ',4:'বৃহ',5:'শুক্র',6:'শনি'};
+function repLabel(t){
+  if(t.repeat==='daily') return '↻ প্রতিদিন';
+  const ds = t.days || [new Date(t.start+'T00:00:00').getDay()];
+  if(ds.length===7) return '↻ প্রতিদিন';
+  return '↻ '+[6,0,1,2,3,4,5].filter(d=>ds.includes(d)).map(d=>SH[d]).join(', ');
+}
+let todoDays = [];
+$('todoDays').innerHTML = [6,0,1,2,3,4,5].map(d=>`<button type="button" class="dchip" data-d="${d}">${SH[d]}</button>`).join('');
+$('todoDays').querySelectorAll('.dchip').forEach(b=>b.addEventListener('click',()=>{ const d=+b.dataset.d; todoDays = todoDays.includes(d) ? todoDays.filter(x=>x!==d) : [...todoDays,d]; b.classList.toggle('on', todoDays.includes(d)); }));
+$('todoRepeat').addEventListener('change',()=>{ $('todoDays').hidden = $('todoRepeat').value!=='days'; });
+function todoDoneOn(t, ds){ return t.repeat ? (t.doneDates||[]).includes(ds) : !!t.done; }
 function extrasOn(ds){
   const dow = new Date(ds+'T00:00:00').getDay();
-  return { todos: act(todos).filter(t=>t.due===ds),
+  return { todos: act(todos).filter(t=>todoOn(t,ds)).map(t=>Object.assign({}, t, {done: todoDoneOn(t,ds)})),
            routines: act(routines).filter(r=> r.date ? r.date===ds : r.day===dow).sort((a,b)=>mins(a.time)-mins(b.time)) };
 }
 function renderCalendarDetail(reviewMap){
@@ -1949,14 +1977,22 @@ function renderExtra(){
   // datalist: all subjects
   $('subjectSuggestions').innerHTML = allSubjects().map(s=>`<option value="${escapeAttr(s)}"></option>`).join('');
   // to-do
-  const open = act(todos).filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')), done = act(todos).filter(t=>t.done);
-  const row = t=>`<div class="card todo-item${t.done?' done':''}"><button class="chk" data-tt="${t.id}">${t.done?'✓':''}</button><div class="tx">${escapeHtml(t.text)}<small>${t.subject?escapeHtml(t.subject):''}${t.subject&&t.due?' · ':''}${t.due?fmtDue(t.due):''}</small></div><button class="del-btn" data-td="${t.id}">✕</button></div>`;
+  const t0 = todayStr();
+  const oneTime = act(todos).filter(t=>!t.repeat);
+  const reps = act(todos).filter(t=>t.repeat).map(t=>Object.assign({}, t, {done: todoDoneOn(t,t0), _on: todoOn(t,t0)}));
+  const open = oneTime.filter(t=>!t.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')), done = oneTime.filter(t=>t.done);
+  const RL = {daily:'↻ প্রতিদিন', weekly:'↻ প্রতি সপ্তাহে'};
+  const row = t=>`<div class="card todo-item${t.done?' done':''}">${t._on===false?'<span class="chk off"></span>':`<button class="chk" data-tt="${t.id}">${t.done?'✓':''}</button>`}<div class="tx">${escapeHtml(t.text)}<small>${[t.subject?escapeHtml(t.subject):'', t.due?fmtDue(t.due):'', t.repeat?repLabel(t):''].filter(Boolean).join(' · ')}</small></div><button class="del-btn" data-td="${t.id}">✕</button></div>`;
   $('todoCount').textContent=open.length; $('todoDoneCount').textContent=done.length;
   $('todoList').innerHTML = open.length ? open.map(row).join('') : '<div class="empty">কোনো কাজ বাকি নেই।</div>';
   $('todoDone').innerHTML = done.map(row).join('');
-  const t0 = todayStr(), tt = open.filter(t=>!t.due || t.due<=t0);
-  $('todoTodaySec').hidden = !tt.length; $('todoTodayCount').textContent = tt.length; $('todoToday').innerHTML = tt.map(row).join('');
-  document.querySelectorAll('[data-tt]').forEach(b=>b.addEventListener('click',()=>{ const t=todos.find(x=>x.id===b.dataset.tt); t.done=!t.done; stamp(t); persistExtra(); render(); }));
+  $('todoRepSec').hidden = !reps.length; $('todoRepCount').textContent = reps.length; $('todoRep').innerHTML = reps.map(row).join('');
+  const tt = [...open.filter(t=>!t.due || t.due<=t0), ...reps.filter(t=>t._on)].sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  const pend = tt.filter(t=>!t.done).length;
+  $('todoTodaySec').hidden = !tt.length; $('todoTodayCount').textContent = pend; $('todoToday').innerHTML = tt.map(row).join('');
+  document.querySelectorAll('[data-tt]').forEach(b=>b.addEventListener('click',()=>{ const t=todos.find(x=>x.id===b.dataset.tt), d0=todayStr();
+    if(t.repeat){ const ds=t.doneDates||[]; t.doneDates = ds.includes(d0) ? ds.filter(x=>x!==d0) : [...ds,d0]; } else t.done=!t.done;
+    stamp(t); persistExtra(); render(); }));
   document.querySelectorAll('[data-td]').forEach(b=>b.addEventListener('click',()=>{ const t=todos.find(x=>x.id===b.dataset.td); t.deleted=true; stamp(t); persistExtra(); render(); }));
   // routine
   const rs = act(routines);
@@ -2008,22 +2044,58 @@ try{ duaFav = JSON.parse(localStorage.getItem('revtrack_duafav')||'[]'); }catch(
 function renderDua(){
   const L = (typeof lang!=='undefined' && lang==='en') ? 'en' : 'bn';
   let html = '', n = 0;
-  const card = (id,t,ar,m,s,mine,pr)=>{ const f=duaFav.includes(id); if(duaView==='fav'&&!f) return ''; n++;
-    return `<div class="card dua-card"><div class="dua-top"><b>${t}</b><button class="fav${f?' on':''}" data-df="${id}">${f?'★':'☆'}</button></div><div class="ar" dir="rtl" lang="ar">${ar}</div>${pr?`<div class="dp"><span class="dpl">উচ্চারণ</span>${pr}</div>`:''}${m?`<div class="dm">${m}</div>`:''}${s?`<div class="ds">${s}</div>`:''}<div class="dua-acts"><button class="mini-btn" data-dc="${id}">কপি করুন</button>${mine?`<button class="del-btn" data-dd="${id}">মুছুন</button>`:''}</div></div>`; };
+  const card = (id,t,ar,m,s,mine,pr,ov)=>{ const f=duaFav.includes(id); if(duaView==='fav'&&!f) return ''; n++;
+    return `<div class="card dua-card"><div class="dua-top"><b>${t}</b><button class="fav${f?' on':''}" data-df="${id}">${f?'★':'☆'}</button></div><div class="ar" dir="rtl" lang="ar">${ar}</div>${pr?`<div class="dp"><span class="dpl">উচ্চারণ</span>${pr}</div>`:''}${m?`<div class="dm">${m}</div>`:''}${s?`<div class="ds">${s}</div>`:''}<div class="dua-acts"><button class="mini-btn" data-dc="${id}">কপি করুন</button><button class="mini-btn ghost" data-de="${id}">সম্পাদনা</button>${mine?`<button class="del-btn" data-dd="${id}">মুছুন</button>`:''}${ov?`<button class="del-btn" data-dr="${id}">মূল অবস্থায় ফিরুন</button>`:''}</div></div>`; };
   let pk = 0;
-  DUAS.forEach((g,gi)=>{ const c = g.items.map((x,i)=>card('b'+gi+'_'+i,x.t[L],x.ar,x.m[L],x.s[L],false,PRON[L][pk++])).join(''); if(c) html += `<div class="rt-day">${g.g[L]}</div>`+c; });
-  const mine = act(myDuas).map(d=>card(d.id,escapeHtml(d.title||''),escapeHtml(d.text||''),d.meaning?escapeHtml(d.meaning):'','',true, (()=>{ const x = L==='en' ? (d.pronEn||d.pronBn) : (d.pronBn||d.pronEn); return x ? escapeHtml(x) : ''; })())).join('');
+  DUAS.forEach((g,gi)=>{ const c = g.items.map((x,i)=>{ const id='b'+gi+'_'+i, pd=PRON[L][pk++], ov=act(myDuas).find(d=>d.base===id);
+      if(!ov) return card(id,x.t[L],x.ar,x.m[L],x.s[L],false,pd,null);
+      const pv = L==='en' ? (ov.pronEn||ov.pronBn) : (ov.pronBn||ov.pronEn);
+      return card(id,escapeHtml(ov.title),escapeHtml(ov.text),ov.meaning?escapeHtml(ov.meaning):'',ov.source?escapeHtml(ov.source):'',false,pv?escapeHtml(pv):'',ov); }).join(''); if(c) html += `<div class="rt-day">${g.g[L]}</div>`+c; });
+  const mine = act(myDuas).filter(d=>!d.base).map(d=>card(d.id,escapeHtml(d.title||''),escapeHtml(d.text||''),d.meaning?escapeHtml(d.meaning):'',d.source?escapeHtml(d.source):'',true, (()=>{ const x = L==='en' ? (d.pronEn||d.pronBn) : (d.pronBn||d.pronEn); return x ? escapeHtml(x) : ''; })(), null)).join('');
   if(mine) html += '<div class="rt-day">আমার দুয়া</div>'+mine;
   $('duaList').innerHTML = html || '<div class="empty">কোনো পছন্দের দুয়া নেই। ☆ চাপ দিয়ে পছন্দের তালিকায় রাখুন।</div>';
   $('duaNote').textContent = L==='en' ? 'Pronunciation is approximate; learn correct recitation from a teacher. Please also verify the Arabic text and meanings against a reliable published collection.' : 'উচ্চারণ আনুমানিক — শুদ্ধ তিলাওয়াত শিক্ষকের কাছ থেকে শিখে নিন। আরবি পাঠ ও অর্থও নির্ভরযোগ্য প্রকাশিত সংকলন থেকে মিলিয়ে নেওয়ার অনুরোধ রইল।';
   $('duaList').querySelectorAll('[data-df]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.df; duaFav = duaFav.includes(id)?duaFav.filter(x=>x!==id):[...duaFav,id]; try{ localStorage.setItem('revtrack_duafav', JSON.stringify(duaFav)); }catch(e){} renderDua(); }));
   $('duaList').querySelectorAll('[data-dc]').forEach(b=>b.addEventListener('click',()=>{ const c=b.closest('.dua-card'); const txt=c.querySelector('.ar').textContent+(c.querySelector('.dm')?'\n'+c.querySelector('.dm').textContent:''); (navigator.clipboard?navigator.clipboard.writeText(txt.replace(/\u2060/g,'')):Promise.reject()).then(()=>snack('কপি হয়েছে')).catch(()=>{}); }));
+  $('duaList').querySelectorAll('[data-de]').forEach(b=>b.addEventListener('click',()=>openDuaEdit(b.dataset.de)));
+  $('duaList').querySelectorAll('[data-dr]').forEach(b=>b.addEventListener('click',()=>{ const ov=act(myDuas).find(d=>d.base===b.dataset.dr); if(ov && confirm('মূল দুয়ায় ফিরিয়ে নিতে চান? আপনার সম্পাদনা মুছে যাবে।')){ ov.deleted=true; stamp(ov); persistExtra(); renderDua(); } }));
   $('duaList').querySelectorAll('[data-dd]').forEach(b=>b.addEventListener('click',()=>{ const d=myDuas.find(x=>x.id===b.dataset.dd); if(d && confirm('এই দুয়াটা মুছে ফেলতে চান?')){ d.deleted=true; stamp(d); persistExtra(); renderDua(); } }));
 }
 $('duaAll').addEventListener('click',()=>{ duaView='all'; $('duaAll').classList.add('on'); $('duaFav').classList.remove('on'); renderDua(); });
 $('duaFav').addEventListener('click',()=>{ duaView='fav'; $('duaFav').classList.add('on'); $('duaAll').classList.remove('on'); renderDua(); });
-$('duaAddBtn').addEventListener('click',()=>openSheet('duaSheet'));
-$('duaSave').addEventListener('click',()=>{ const text=$('duaText').value.trim(); if(!text) return; myDuas.push(stamp({id:genId('d'),title:$('duaTitle').value.trim()||'আমার দুয়া',text,meaning:$('duaMean').value.trim(),pronBn:$('duaPronBn').value.trim(),pronEn:$('duaPronEn').value.trim()})); ['duaTitle','duaText','duaPronBn','duaPronEn','duaMean'].forEach(i=>$(i).value=''); closeSheets(); persistExtra(); renderDua(); snack('দুয়া যোগ হয়েছে'); });
+let duaEditId = null;
+const DUA_FIELDS = {title:'duaTitle',text:'duaText',pronBn:'duaPronBn',pronEn:'duaPronEn',source:'duaSource',meaning:'duaMean'};
+function setDuaSheet(vals, editing){
+  Object.keys(DUA_FIELDS).forEach(k=>$(DUA_FIELDS[k]).value = (vals&&vals[k])||'');
+  $('duaSheetTitle').textContent = editing ? 'দুয়া সম্পাদনা' : 'নিজের দুয়া';
+  $('duaSave').textContent = editing ? 'সেভ করুন' : 'যোগ করুন';
+  openSheet('duaSheet');
+}
+function openDuaEdit(id){
+  const L = (typeof lang!=='undefined' && lang==='en') ? 'en' : 'bn', m = id.match(/^b(\d+)_(\d+)$/);
+  duaEditId = id;
+  if(m){
+    const gi=+m[1], i=+m[2], x=DUAS[gi].items[i], flat=DUAS.slice(0,gi).reduce((s,g)=>s+g.items.length,0)+i, ov=act(myDuas).find(d=>d.base===id);
+    setDuaSheet(ov || {title:x.t[L],text:x.ar,pronBn:PRON.bn[flat],pronEn:PRON.en[flat],source:x.s[L],meaning:x.m[L]}, true);
+  }else{
+    setDuaSheet(myDuas.find(d=>d.id===id), true);
+  }
+}
+$('duaAddBtn').addEventListener('click',()=>{ duaEditId = null; setDuaSheet(null,false); });
+$('duaSave').addEventListener('click',()=>{
+  const v = {}; Object.keys(DUA_FIELDS).forEach(k=>v[k]=$(DUA_FIELDS[k]).value.trim());
+  if(!v.text) return;
+  if(!v.title) v.title = 'আমার দুয়া';
+  if(duaEditId){
+    let rec = /^b\d+_\d+$/.test(duaEditId) ? act(myDuas).find(d=>d.base===duaEditId) : myDuas.find(d=>d.id===duaEditId);
+    if(!rec){ rec = {id:genId('d'), base:duaEditId}; myDuas.push(rec); }
+    Object.assign(rec, v); stamp(rec);
+  }else{
+    myDuas.push(stamp(Object.assign({id:genId('d')}, v)));
+  }
+  const edited = !!duaEditId; duaEditId = null;
+  closeSheets(); persistExtra(); renderDua(); snack(edited ? 'দুয়া সেভ হয়েছে' : 'দুয়া যোগ হয়েছে');
+});
 
 /* ---------- motivation + study tips, tomorrow preview ---------- */
 const QUOTES = [
@@ -2096,7 +2168,10 @@ function renderTime(){
 { const _r = render; render = function(){ _r(); renderExtra(); renderTime(); renderTomorrow(); renderLearn(); renderDua(); }; }
 $('rtDay').innerHTML = DAY_ORDER.map(d=>`<option value="${d}">${DAY_NAMES[d]}</option>`).join('');
 $('subjAdd').addEventListener('click',()=>{ const n=$('subjName').value.trim(); if(!n) return; if(!allSubjects().includes(n)) userSubjects.push(stamp({id:genId('s'),name:n})); $('subjName').value=''; persistExtra(); renderSubjSheet(); render(); snack('সাবজেক্ট যোগ হয়েছে'); });
-$('todoAdd').addEventListener('click',()=>{ const t=$('todoText').value.trim(); if(!t) return; todos.push(stamp({id:genId('t'),text:t,subject:$('todoSubject').value.trim(),due:$('todoDue').value||'',done:false})); $('todoText').value=''; $('todoDue').value=''; persistExtra(); render(); });
+$('todoAdd').addEventListener('click',()=>{ const t=$('todoText').value.trim(); if(!t) return; const rp=$('todoRepeat').value, d=$('todoDue').value||'';
+  if(rp==='days' && !todoDays.length){ snack('কমপক্ষে একটা বার বেছে নিন'); return; }
+  todos.push(stamp(Object.assign({id:genId('t'),text:t,subject:$('todoSubject').value.trim(),due:rp?'':d,done:false}, rp?Object.assign({repeat:rp,start:d||todayStr(),doneDates:[]}, rp==='days'?{days:[...todoDays].sort()}:{}):{})));
+  $('todoText').value=''; $('todoDue').value=''; $('todoRepeat').value=''; todoDays=[]; $('todoDays').hidden=true; $('todoDays').querySelectorAll('.dchip').forEach(c=>c.classList.remove('on')); persistExtra(); render(); });
 $('todoClear').addEventListener('click',()=>{ act(todos).filter(t=>t.done).forEach(t=>{ t.deleted=true; stamp(t); }); persistExtra(); render(); });
 $('todoGo').addEventListener('click',()=>go('Todo'));
 $('rtAddBtn').addEventListener('click',()=>openSheet('rtSheet'));
@@ -2185,6 +2260,9 @@ $('imGo').addEventListener('click',()=>{
 /* ---------- language (Bengali source text, English overlay) ---------- */
 let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
 const D = {
+'নির্দিষ্ট বার':'Selected days','কমপক্ষে একটা বার বেছে নিন':'Pick at least one day',
+'↻ প্রতিদিন':'↻ Daily','↻ প্রতি সপ্তাহে':'↻ Weekly','নিয়মিত কাজ':'Repeating tasks','পুনরাবৃত্তি':'Repeat','একবার':'Once','প্রতিদিন':'Daily','প্রতি সপ্তাহে':'Weekly','প্রতিদিন, অথবা নির্দিষ্ট বারগুলোতে আবার আসবে। তারিখ দিলে সেই দিন থেকে শুরু, না দিলে আজ থেকে।':'Repeats every day, or only on the days you choose. If you pick a date it starts then; otherwise it starts today.',
+'সম্পাদনা':'Edit','মূল অবস্থায় ফিরুন':'Reset to original','দুয়া সম্পাদনা':'Edit dua','সূত্র (ঐচ্ছিক, যেমনঃ বুখারী, তিরমিযী)':'Source (optional, e.g. Bukhari, Tirmidhi)','দুয়া সেভ হয়েছে':'Dua saved','মূল দুয়ায় ফিরিয়ে নিতে চান? আপনার সম্পাদনা মুছে যাবে।':'Reset to the original dua? Your edits will be removed.',
 'উচ্চারণ (বাংলায়, ঐচ্ছিক)':'Pronunciation in Bengali (optional)','উচ্চারণ (ইংরেজিতে, ঐচ্ছিক)':'Pronunciation in English (optional)',
 'উচ্চারণ':'Pronunciation',
 'থিম':'Theme','সিস্টেম':'System','লাইট':'Light','ডার্ক':'Dark','অ্যাকসেন্ট রং':'Accent colour','কমলা':'Orange','লাল':'Red','বেগুনি':'Purple','ইন্ডিগো':'Indigo','সায়ান':'Cyan',
@@ -2230,6 +2308,7 @@ const D = {
 'রবিবার':'Sunday','সোমবার':'Monday','মঙ্গলবার':'Tuesday','বুধবার':'Wednesday','বৃহস্পতিবার':'Thursday','শুক্রবার':'Friday','শনিবার':'Saturday','রবি':'Sun','সোম':'Mon','মঙ্গল':'Tue','বুধ':'Wed','বৃহ':'Thu','শুক্র':'Fri','শনি':'Sat'
 };
 const R = [
+[/^↻ (.+)$/,x=>'↻ '+x.split(', ').map(s=>D[s]||s).join(', ')],
 [/^(\d+)টি রিভিউ$/,n=>n+(n==1?' review':' reviews')],[/^\+(\d+) আরও$/,n=>'+'+n+' more'],
 [/^আগের রুটিন \((\d+)\)$/,n=>'Earlier ('+n+')'],
 [/^(\d+ ঘণ্টা)?\s?(\d+ মিনিট)?$/,(a,b)=>[a&&a.replace(' ঘণ্টা','h'),b&&b.replace(' মিনিট','min')].filter(Boolean).join(' ')],
@@ -2250,7 +2329,7 @@ const R = [
 [/^এক্সপোর্ট করলে/,()=>'Export saves all your chapters and exams to one downloadable file. Importing merges that file into your current data — nothing is deleted and the same chapter/exam is never added twice.'],
 [/^এই ফিচার আপনার/,()=>'This feature uses your own'],[/^-কে স্টোরেজ/,()=>'as storage, so the same data shows on several devices. To create a token: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → create one and, for only that repo, give it'],
 [/^পারমিশন দিন/,()=>'permission. The token is stored only in this browser — do not share it.'],[/^এখন ডিলিট করাও/,()=>'Deletions sync too — deleting a chapter/exam on one device removes it on the others at the next sync.'],
-[/^সংস্করণ/,()=>'Version: 02 Oct 2026 — missed review → Mark done / Skip']
+[/^সংস্করণ/,()=>'Version: 14 Oct 2026 — own dua pronunciation']
 ];
 const MF=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 const MS=['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্ট','অক্টো','নভে','ডিসে'];
