@@ -770,6 +770,16 @@
       </div>
     </section>
     <section>
+      <div class="sec-title">অনুপ্রেরণা</div>
+      <div class="card">
+        <div class="tf date"><select id="mvFreq"><option value="open">প্রতিবার অ্যাপ খুললে</option><option value="hour">প্রতি ঘণ্টায়</option><option value="daily">প্রতিদিন</option><option value="week">প্রতি সপ্তাহে</option></select><label for="mvFreq">কতবার লাইন বদলাবে</label></div>
+        <label class="sync-toggle" style="margin-bottom:18px"><input type="checkbox" id="mvDef"><span>ডিফল্ট লাইনগুলো দেখান</span></label>
+        <div class="tf"><input placeholder=" " type="text" id="mvText"><label for="mvText">নিজের অনুপ্রেরণার লাইন</label></div>
+        <button class="btn btn-amber" id="mvAdd" style="width:100%">যোগ করুন</button>
+        <div id="mvList" style="margin-top:14px"></div>
+      </div>
+    </section>
+    <section>
       <div class="sec-title">ব্যাকআপ</div>
       <div class="card">
         <div class="backup-row">
@@ -917,7 +927,7 @@ if(lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('chang
 applyTheme();
 let chapters = [];
 let exams = [];
-let userSubjects = [], todos = [], routines = [];
+let userSubjects = [], todos = [], routines = [], myQuotes = [];
 let loaded = false;
 let activeSubject = 'সব';
 
@@ -1740,7 +1750,7 @@ async function pullAndMerge(cfg){
   const beforeCount = activeChapters().length + activeExams().length;
   chapters = mergeRecords(chapters, remote.chapters || []);
   exams = mergeRecords(exams, remote.exams || []);
-  userSubjects = mergeRecords(userSubjects, remote.subjects || []); todos = mergeRecords(todos, remote.todos || []); routines = mergeRecords(routines, remote.routines || []); myDuas = mergeRecords(myDuas, remote.duas || []);
+  userSubjects = mergeRecords(userSubjects, remote.subjects || []); todos = mergeRecords(todos, remote.todos || []); routines = mergeRecords(routines, remote.routines || []); myDuas = mergeRecords(myDuas, remote.duas || []); myQuotes = mergeRecords(myQuotes, remote.quotes || []);
   recompute();
   const afterCount = activeChapters().length + activeExams().length;
   return { changed: afterCount - beforeCount, hadRemote: true };
@@ -1753,7 +1763,7 @@ async function pushToGithub(retry){
   syncInFlight = true;
   setSyncStatus('সিঙ্ক হচ্ছে…');
   try{
-    const result = await githubPutFile(cfg, { chapters, exams, subjects: userSubjects, todos, routines, duas: myDuas, updatedAt: new Date().toISOString() });
+    const result = await githubPutFile(cfg, { chapters, exams, subjects: userSubjects, todos, routines, duas: myDuas, quotes: myQuotes, updatedAt: new Date().toISOString() });
     if(result === 'conflict' && !retry){
       // someone else pushed since our last pull — merge remote in, then retry once
       await pullAndMerge(cfg);
@@ -1837,7 +1847,7 @@ function exportData(){
     exportedAt: todayStr(),
     chapters,
     exams,
-    subjects: userSubjects, todos, routines, duas: myDuas
+    subjects: userSubjects, todos, routines, duas: myDuas, quotes: myQuotes
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1869,7 +1879,7 @@ function importData(file){
       const beforeCount = activeChapters().length + activeExams().length;
       chapters = mergeRecords(chapters, incomingChapters);
       exams = mergeRecords(exams, incomingExams);
-      userSubjects = mergeRecords(userSubjects, data.subjects || []); todos = mergeRecords(todos, data.todos || []); routines = mergeRecords(routines, data.routines || []); myDuas = mergeRecords(myDuas, data.duas || []);
+      userSubjects = mergeRecords(userSubjects, data.subjects || []); todos = mergeRecords(todos, data.todos || []); routines = mergeRecords(routines, data.routines || []); myDuas = mergeRecords(myDuas, data.duas || []); myQuotes = mergeRecords(myQuotes, data.quotes || []);
       recompute();
       await save();
       await saveExams();
@@ -1930,8 +1940,8 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
 /* ---------- subjects, to-do, routine ---------- */
 const act = a => a.filter(x=>!x.deleted);
 const _saveExams = saveExams, _loadExams = loadExams;
-saveExams = async function(){ try{ localStorage.setItem('revtrack_extra', JSON.stringify({subjects:userSubjects,todos,routines,duas:myDuas})); }catch(e){} return _saveExams(); };
-loadExams = async function(){ await _loadExams(); try{ const x = JSON.parse(localStorage.getItem('revtrack_extra')||'{}'); userSubjects=x.subjects||[]; todos=x.todos||[]; routines=x.routines||[]; myDuas=x.duas||[]; }catch(e){} };
+saveExams = async function(){ try{ localStorage.setItem('revtrack_extra', JSON.stringify({subjects:userSubjects,todos,routines,duas:myDuas,quotes:myQuotes})); }catch(e){} return _saveExams(); };
+loadExams = async function(){ await _loadExams(); try{ const x = JSON.parse(localStorage.getItem('revtrack_extra')||'{}'); userSubjects=x.subjects||[]; todos=x.todos||[]; routines=x.routines||[]; myDuas=x.duas||[]; myQuotes=x.quotes||[]; }catch(e){} };
 function allSubjects(){
   const s = new Set();
   act(userSubjects).forEach(x=>s.add(x.name));
@@ -2134,10 +2144,32 @@ const TIPS = [
      en:'<p>Enough sleep helps consolidate what you studied into memory. Regular sleep before an exam helps more than studying all night.</p>'}}
 ];
 function dayOfYear(){ const n=new Date(); return Math.floor((n-new Date(n.getFullYear(),0,0))/86400000); }
+
+const MV_SESSION = Math.floor(Math.random()*1e6);
+function motivCfg(){ let c={}; try{ c=JSON.parse(localStorage.getItem('revtrack_motiv')||'{}'); }catch(e){} return {freq:c.freq||'daily', def:c.def!==false}; }
+function saveMotivCfg(c){ try{ localStorage.setItem('revtrack_motiv', JSON.stringify(c)); }catch(e){} }
+function pickIdx(freq, n){
+  const now=Date.now(); let b;
+  if(freq==='open') b=MV_SESSION; else if(freq==='hour') b=Math.floor(now/3600000);
+  else if(freq==='week') b=Math.floor(now/604800000); else b=Math.floor((now-new Date().getTimezoneOffset()*60000)/86400000);
+  return b % n;
+}
+function renderMotiv(){
+  const c=motivCfg(); $('mvFreq').value=c.freq; $('mvDef').checked=c.def;
+  const own=act(myQuotes);
+  $('mvList').innerHTML = own.length ? '<div class="sheet-label">আপনার যোগ করা লাইন</div>'+own.map(q=>`<div class="card todo-item" style="background:var(--bg)"><div class="tx" style="font-weight:400">${escapeHtml(q.text)}</div><button class="del-btn" data-mq="${q.id}">✕</button></div>`).join('') : '';
+  $('mvList').querySelectorAll('[data-mq]').forEach(b=>b.addEventListener('click',()=>{ const q=myQuotes.find(x=>x.id===b.dataset.mq); q.deleted=true; stamp(q); persistExtra(); renderMotiv(); renderLearn(); }));
+}
+$('mvFreq').addEventListener('change',()=>{ const c=motivCfg(); c.freq=$('mvFreq').value; saveMotivCfg(c); renderLearn(); });
+$('mvDef').addEventListener('change',()=>{ const c=motivCfg(); c.def=$('mvDef').checked; saveMotivCfg(c); renderLearn(); });
+$('mvAdd').addEventListener('click',()=>{ const t=$('mvText').value.trim(); if(!t) return; myQuotes.push(stamp({id:genId('q'),text:t})); $('mvText').value=''; persistExtra(); renderMotiv(); renderLearn(); snack('অনুপ্রেরণা যোগ হয়েছে'); });
+setInterval(()=>{ if(typeof renderLearn==='function') renderLearn(); }, 60000);
 function renderLearn(){
   const L = (typeof lang!=='undefined' && lang==='en') ? 'en' : 'bn', k = dayOfYear();
   const q = QUOTES[k % QUOTES.length], tp = TIPS[k % TIPS.length];
-  $('quoteText').textContent = '“'+q[L]+'”';
+  const mv = motivCfg(), pool = [...(mv.def ? QUOTES.map(x=>x[L]) : []), ...act(myQuotes).map(x=>'\u2060'+x.text+'\u2060')];
+  $('quoteText').hidden = !pool.length;
+  if(pool.length) $('quoteText').textContent = '“'+pool[pickIdx(mv.freq, pool.length)]+'”';
   $('tipTitle').textContent = (L==='en'?'Tip of the day: ':'আজকের টিপ: ')+tp.t[L];
   $('tipBody').innerHTML = tp.b[L];
   $('tipAll').innerHTML = TIPS.map(x=>`<details class="tip tip-sub"><summary>${x.t[L]}</summary><div class="tip-body">${x.b[L]}</div></details>`).join('');
@@ -2165,7 +2197,7 @@ function renderTime(){
   const rows = Object.entries(by).sort((a,b)=>b[1]-a[1]);
   $('subjTime').innerHTML = rows.length ? '<div class="card" style="margin-bottom:14px"><div class="sec-title">সাবজেক্ট অনুযায়ী মোট সময়</div>'+rows.map(([s,m])=>`<div class="tm-row"><span>${escapeHtml(s)}</span><b>${fmtMins(m)}</b></div>`).join('')+`<div class="tm-row tm-sum"><span>মোট</span><b>${fmtMins(total)}</b></div></div>` : '';
 }
-{ const _r = render; render = function(){ _r(); renderExtra(); renderTime(); renderTomorrow(); renderLearn(); renderDua(); }; }
+{ const _r = render; render = function(){ _r(); renderExtra(); renderTime(); renderTomorrow(); renderLearn(); renderDua(); renderMotiv(); }; }
 $('rtDay').innerHTML = DAY_ORDER.map(d=>`<option value="${d}">${DAY_NAMES[d]}</option>`).join('');
 $('subjAdd').addEventListener('click',()=>{ const n=$('subjName').value.trim(); if(!n) return; if(!allSubjects().includes(n)) userSubjects.push(stamp({id:genId('s'),name:n})); $('subjName').value=''; persistExtra(); renderSubjSheet(); render(); snack('সাবজেক্ট যোগ হয়েছে'); });
 $('todoAdd').addEventListener('click',()=>{ const t=$('todoText').value.trim(); if(!t) return; const rp=$('todoRepeat').value, d=$('todoDue').value||'';
@@ -2260,6 +2292,7 @@ $('imGo').addEventListener('click',()=>{
 /* ---------- language (Bengali source text, English overlay) ---------- */
 let lang = 'bn'; try{ lang = localStorage.getItem('revtrack_lang') || 'bn'; }catch(e){}
 const D = {
+'অনুপ্রেরণা':'Motivation','প্রতিবার অ্যাপ খুললে':'Every time the app opens','প্রতি ঘণ্টায়':'Every hour','কতবার লাইন বদলাবে':'How often the line changes','ডিফল্ট লাইনগুলো দেখান':'Show the built-in lines','নিজের অনুপ্রেরণার লাইন':'Your own motivation line','অনুপ্রেরণা যোগ হয়েছে':'Motivation line added','আপনার যোগ করা লাইন':'Your lines',
 'নির্দিষ্ট বার':'Selected days','কমপক্ষে একটা বার বেছে নিন':'Pick at least one day',
 '↻ প্রতিদিন':'↻ Daily','↻ প্রতি সপ্তাহে':'↻ Weekly','নিয়মিত কাজ':'Repeating tasks','পুনরাবৃত্তি':'Repeat','একবার':'Once','প্রতিদিন':'Daily','প্রতি সপ্তাহে':'Weekly','প্রতিদিন, অথবা নির্দিষ্ট বারগুলোতে আবার আসবে। তারিখ দিলে সেই দিন থেকে শুরু, না দিলে আজ থেকে।':'Repeats every day, or only on the days you choose. If you pick a date it starts then; otherwise it starts today.',
 'সম্পাদনা':'Edit','মূল অবস্থায় ফিরুন':'Reset to original','দুয়া সম্পাদনা':'Edit dua','সূত্র (ঐচ্ছিক, যেমনঃ বুখারী, তিরমিযী)':'Source (optional, e.g. Bukhari, Tirmidhi)','দুয়া সেভ হয়েছে':'Dua saved','মূল দুয়ায় ফিরিয়ে নিতে চান? আপনার সম্পাদনা মুছে যাবে।':'Reset to the original dua? Your edits will be removed.',
